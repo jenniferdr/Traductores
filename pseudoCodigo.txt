@@ -5,8 +5,12 @@ if (!listaPalabras || !listaArchivos) --> abortar
 
 (permitidas,noPermitidas)= procesarPalabras(listaPalabras)
 
+Formar NP
+
 ER= ""
-Para cada palabra en permitidas
- .
- .
- .	  
+ Para cada lista permutada de "permitidas"
+     ER += "(NP" 
+     Para cada palabra en la lista permutada 
+	ER+= palabra + NP 
+     ER+= ")"
+  	  
