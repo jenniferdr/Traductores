@@ -1,0 +1,12 @@
+
+(listaPalabras,listaArchivos)= extraerArgumentos(agrv[])
+
+if (!listaPalabras || !listaArchivos) --> abortar
+
+(permitidas,noPermitidas)= procesarPalabras(listaPalabras)
+
+ER= ""
+Para cada palabra en permitidas
+ .
+ .
+ .	  
