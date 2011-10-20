@@ -9,18 +9,17 @@ if('-' in sys.argv):
 if(len(sys.argv) < 3):
 	print "Faltan parametros"
 	exit
-elif((len(sys.argv) == 3) and (sys.argv[1][0] != '+' or sys.argv[1][0] != '-' or
-     sys.argv[2][0] == '+' or sys.argv[2][0] == '-')):
+elif((len(sys.argv) == 3) and ((sys.argv[1][0] != '+' and sys.argv[1][0] != '-')
+			       or sys.argv[2][0] == '+' or sys.argv[2][0] == '-')):
 	print "Parametros invalidos"
-     print ""+ sys.argv[1]
 	exit
 
-(palabras,archivos) = extraerArgumentos(argv)
+(palabras,archivos) = funciones.extraerArgumentos(sys.argv)
 
 if((len(palabras) == 0) or (len(archivos) == 0)):
 	print ("Faltan parametros: debe haber por lo menos una palabra y"
 	       "un archivo")
 
-(dic_permitidas,list_prohibidas) = procesarPalabras(palabras)
+(dic_permitidas,list_prohibidas) =funciones.procesarPalabras(palabras)
 
-files = procesarArchivos(archivos)
+files = funciones.procesarArchivos(archivos)
