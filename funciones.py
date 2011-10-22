@@ -30,3 +30,44 @@ def procesarArchivos(archivos):
 		except:
 			print "Error al abrir el archivo '" + f + "'"
 	return pointer_files
+
+def listaLetras(palabras):
+    letras=[]
+    for p in palabras:
+        for l in p:
+            if(not(l in letras)):
+                letras.append(l)
+    return letras
+
+            
+def dfaPalabras(listaLetras):
+    global G=grafo.Graph()
+    G.addNodo()
+    global listaL
+    listaL= listaLetras
+    global primeras
+    primeras=[]
+    
+    i=1
+    #Crear un nodo y un arco para la primera letra de cada primera
+    for palabra in list_prohibidas:
+        if(len(palabra)>1):
+            
+            G.addNodo()
+            G.addArc(0,i,palabra[0])
+            primeras.append(palabra[0])
+            i= i+1
+        else:
+            listaL.remove(palabra[0])
+
+    # Hacer un bucle en el estado inicial con las letras no iniciales 
+    for l in listaL:
+        if(not(l is in primeras)):
+            G.addArc(0,0,l)
+            
+    # Para cada nodo creado calcular el resto de los caminos 
+    for nodo in range(1,i-1):
+        
+        dfaAux()
+    
+    
