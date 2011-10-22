@@ -48,26 +48,38 @@ def dfaPalabras(listaLetras):
     global primeras
     primeras=[]
     
-    i=1
-    #Crear un nodo y un arco para la primera letra de cada primera
+    #Tomar la primera letra de cada palabra
     for palabra in list_prohibidas:
-        if(len(palabra)>1):
-            
+	    if(!(palabra[0] in primeras)):
+		    primeras.append(palabra[0])
+
+    #Si alguna palabra prohibida es de long 1 esa letra se debe eliminar
+    # del conjunto de letras a utilizar en el automata
+    for palabra in list_prohibidas:
+	    if(len(palabra)==1): 
+		    listaL.remove(palabra[0])
+		    primeras.remove(palabra[0])
+    global i
+    i=1
+    #Crear un nodo y un arco para la primera letra de cada palabra prohibida
+    for letra in primeras:
             G.addNodo()
-            G.addArc(0,i,palabra[0])
-            primeras.append(palabra[0])
+            G.addArc(0,i,letra)
             i= i+1
-        else:
-            listaL.remove(palabra[0])
 
     # Hacer un bucle en el estado inicial con las letras no iniciales 
     for l in listaL:
         if(not(l is in primeras)):
             G.addArc(0,0,l)
-            
-    # Para cada nodo creado calcular el resto de los caminos 
-    for nodo in range(1,i-1):
-        
-        dfaAux()
+
+    # Hacer un diccionario que dada una letra tenga la lista de palabras 
+    # que comience por esa letra
+    
+
+    i=1        
+    # Para cada nodo creado, calcular el resto de los caminos 
+    for l in primeras:
+        #Tomar las palabras que comienzan por la letra l 
+	dfaAux()
     
     
