@@ -1,0 +1,117 @@
+#!/usr/bin/python
+
+class Digrafo:
+    def __init__(self):
+        self.arcos_in = {}
+        self.arcos_out = {}
+        self.nodos = -1
+
+    def anadirNodo(self):
+        self.nodos = self.nodos + 1
+        nodo = self.nodos
+
+        if nodo not in self.arcos_in:
+            self.arcos_in[nodo] = []
+
+        if nodo not in self.arcos_out:
+            self.arcos_out[nodo] = []
+
+        return nodo
+    
+    def removerNodo(self,nodo):
+        for node in self.arcos_in.keys():
+            if(node != nodo):
+                for aux in self.arcos_in[node]:
+                    if(aux[0] == nodo):
+                        self.arcos_in[node].remove(aux)
+                for aux in self.arcos_out[node]:
+                    if(aux[0] == nodo):
+                        self.arcos_out[node].remove(aux)
+
+        del self.arcos_in[nodo]
+        del self.arcos_out[nodo]
+
+    def anadirArco(self,src,dst,exp):
+        if(src in self.arcos_in and src in self.arcos_out and
+           dst in self.arcos_in and dst in self.arcos_out):
+            self.arcos_in[src].append((dst,exp))
+            self.arcos_out[dst].append((src,exp))
+        
+    def removerArco(self,src,dst):
+        for aux in self.arcos_in[src]:
+            if(aux[0] == dst):
+                self.arcos_in[src].remove(aux)
+                break
+
+        for aux in self.arcos_out[dst]:
+            if(aux[0] == src):
+                self.arcos_out[dst].remove(aux)
+                break
+
+    def isBucle(self,node):
+        in_ = self.arcos_out[node]
+        for nodo, expr in in_:
+            if(nodo == node):
+                return (nodo,expr)
+        return False
+
+    def isArco(self,src,dst):
+        for dst_, expr in self.arcos_in[src]:
+            if(dst_ == dst):
+                return (dst_,expr)
+        return False
+
+    def dfa2er(self):
+        g = self
+        #Crear estados 'i' y 'f'
+        g.arcos_in['i'] = []
+        g.arcos_out['i'] = []
+        g.arcos_in['f'] = []
+        g.arcos_out['f'] = []
+        #Conectar estado inicial 'i' con el estado 0
+        g.anadirArco('i',0,'')
+        #Conectar estados finales anteriores con el estado final 'f'
+        for f in range(g.nodos + 1):
+            g.anadirArco(f,'f','')
+        #Eliminacion de arcos
+        for q in range(g.nodos + 1):
+            #Verificacion de bucle en el nodo q
+            star = g.isBucle(q)
+            #Si es asi, se obtiene la expresion regular de cero o mas repeticiones
+            if(star):
+                g.arcos_out[q].remove(star)
+                g.arcos_in[q].remove(star)
+                star = '(' + star[1] + ')*'
+            else:
+                star = ''
+            #Se crean arcos que se conectaban con el estado q
+            for i,expr1 in g.arcos_out[q]:
+                for o, expr2 in g.arcos_in[q]:
+                    print i,q,o
+                    g.removerArco(i,q)
+                    g.removerArco(q,o)
+                    er = expr1 + star + expr2
+                    arc = g.isArco(i,o)
+                    if(arc):
+                        g.removerArco(i,o)
+                        er = '(' + '(' + arc[1] + ')' + '+' + '(' + er + ')' + ')'
+                        g.anadirArco(i,o,er)
+                    else:
+                        er = '(' + er + ')'
+                        g.anadirArco(i,o,er)
+            #g.removerNodo(q)
+        print g.arcos_in
+        print g.arcos_out
+        print ' '
+
+
+g=Digrafo()
+g.anadirNodo()
+g.anadirNodo()
+g.anadirNodo()
+g.anadirArco(0,0,'x')
+g.anadirArco(0,1,'a')
+g.anadirArco(0,2,'b')
+g.anadirArco(2,1,'c')
+g.anadirArco(2,2,'z')
+g.dfa2er()       
