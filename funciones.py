@@ -72,8 +72,8 @@ def dfaPalabras(listaLetras):
     # Hacer un bucle en el estado inicial con las letras no iniciales
     noIniciales="("
     for l in listaL:
-        if(not(l is in primeras)):
-            noIniciales+= (l+"+")
+        if(not(l in primeras)):
+            noIniciales+= (l+"|")
             
     noIniciales= noIniciales[:-1] + ")"
     G.addArc(0,0,noIniciales)
@@ -133,7 +133,7 @@ def dfaAux(palabras,nodoActual):
     aEdoIni="("
     for letra in delegar[:]:
         if(not(letra in primeras)): delegar.remove(letra)
-        aEdoIni+= letra + "+"
+        aEdoIni+= letra + "|"
         
     aEdoIni= aEdoIni[:-1] + ")"
     # Agragar el arco al estado inicial
