@@ -46,8 +46,11 @@ for l in listaLP:
     strLNP += l
 strLNP += "]"
 
-# ER para representar cualquier palabra menos las prohibidas     
-NP= "(?:"+strLNP+"*(?:"+palabras_LP+strLNP+"+|"+strLNP+")*"+palabras_LP+"?)"
+# ER para representar cualquier palabra menos las prohibidas
+if(len(strLNP)>3):
+    NP= "(?:"+strLNP+"*(?:"+palabras_LP+strLNP+"+|"+strLNP+")*"+palabras_LP+"?)"
+else:
+    NP= ".*"
 # Con todas sus permutaciones de palabras en diccionario 
 #ER=..NP palabra NP palabra.. 
 ## compilarla
