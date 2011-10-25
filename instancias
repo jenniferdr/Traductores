@@ -56,6 +56,7 @@ else:
 ## compilarla
 ER = funciones.crearER(dic_permitidas,NP)
 print ER
+
 for file in files:
     for line in file:
         if(re.match("^"+ER+"$",line)):
