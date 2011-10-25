@@ -1,5 +1,4 @@
 #!/usr/bin/python
-
 import sys
 import funciones
 import grafo
@@ -59,7 +58,7 @@ re.compile(palabras_LP)
 
 for file in files:
     for line in file:
-        if(re.match("^"+NP+"$",line)):
+        if(re.match("^"+ER+"$",line)):
            print line
            
         print "sigo en el loop"
