@@ -29,7 +29,7 @@ def procesarArchivos(archivos):
 	pointer_files = []
 	for f in archivos:
 		try:
-			pointer_files.add(open(f, "r"))		
+			pointer_files.append(open(f, "r"))		
 		except:
 			print "Error al abrir el archivo '" + f + "'"
 	return pointer_files
