@@ -51,10 +51,13 @@ if(len(strLNP)>3):
     NP= "(?:"+strLNP+"*(?:"+palabras_LP+strLNP+"+|"+strLNP+")*"+palabras_LP+"?)"
 else:
     NP= ".*"
+    
 # Con todas sus permutaciones de palabras en diccionario 
-#ER=..NP palabra NP palabra.. 
-## compilarla
-ER = funciones.crearER(dic_permitidas,NP)
+if(len(dic_permitidas)>0):
+    ER = funciones.crearER(dic_permitidas,NP)
+else:
+    ER= NP
+    
 print ER
 
 for file in files:
