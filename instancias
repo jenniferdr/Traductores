@@ -38,8 +38,9 @@ dfa= funciones.dfaPalabras(listaLP,list_prohibidas)
 
 # Expresion regular de palabras formadas con las letras
 # de palabras prohibidas. 
+print dfa.arcos_in
+print dfa.arcos_out
 palabras_LP = dfa.convertirDFA_ER()
-
 print palabras_LP
 
 # ER para representar cualquier caracter menos las que aparecen
@@ -55,15 +56,9 @@ NP= "(?:"+strLNP+"*(?:"+palabras_LP+strLNP+"+|"+strLNP+")*"+palabras_LP+"?)"
 #ER=..NP palabra NP palabra.. 
 ## compilarla
 ER = funciones.crearER(dic_permitidas,NP)
-
+print ER
 for file in files:
     for line in file:
-        if(re.match("^"+NP+"$",line)):
-           print line
-           
-        print "sigo en el loop"
+        if(re.match("^"+ER+"$",line)):
+           print file.name + ": " + line
     file.close()
-    print "que hago" 
-
-           
-

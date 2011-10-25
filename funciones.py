@@ -76,12 +76,13 @@ def dfaPalabras(listaLetras,prohibidas):
             G.anadirArco(0,i,letra)
 
     # Hacer un bucle en el estado inicial con las letras no iniciales
-    noIniciales="("
+    noIniciales="(?:"
     for l in listaL:
         if(not(l in primeras)):
-            noIniciales+= (l+"|")
-            
-    noIniciales= noIniciales[:-1] + ")"
+            noIniciales = noIniciales + '|'
+    
+    noIniciales = noIniciales + ")"
+    
     G.anadirArco(0,0,noIniciales)
             
     noDelegables=[]  
@@ -134,7 +135,7 @@ def dfaAux(palabras,nodoActual,noDelegables):
     # Delegar letras a otros estados
     # Primero formamos la expresion regular de todas las letras que van
     # al estado inicial
-    aEdoIni="("
+    aEdoIni="(?:"
     for letra in delegar[:]:
         if(not(letra in primeras)): delegar.remove(letra)
         aEdoIni+= letra + "|"
