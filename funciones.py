@@ -125,8 +125,8 @@ def dfaAux(palabras,nodoActual,noDelegables):
     sucesores={}
     # Crear los nuevos nodos o estados
     for letra in nuevos[:]:
-        i= grafo.G.anadirNodo()
-        grafo.G.anadirArco(nodoActual,i,letra)
+        i= G.anadirNodo()
+        G.anadirArco(nodoActual,i,letra)
         sucesores[i]= letra
         sucesores.remove(letra)
 
@@ -141,12 +141,12 @@ def dfaAux(palabras,nodoActual,noDelegables):
     aEdoIni= aEdoIni[:-1] + ")"
     # Agragar el arco al estado inicial
     if(len(aEdoIni)>1):
-        grafo.G.anadirArco(nodoActual,0,aEdoIni)
+        G.anadirArco(nodoActual,0,aEdoIni)
 
     # Luego delegamos las letras que van a los estados que no es el inicial
     for letra in delegar[:]:
         nodoDest=grafo.G.nodoDestino(0,delegar.pop())
-        grafo.G.anadirArco(nodoActual,nodoDest,letra)
+        G.anadirArco(nodoActual,nodoDest,letra)
 
     # Pila de nuevos,delegar y noDelegables vaciadas 
     noDelegables=[]
