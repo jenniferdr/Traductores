@@ -1,5 +1,6 @@
 import grafo
 
+    
 def extraerArgumentos(argumentos):
 	palabras = []
 	archivos = []
@@ -80,14 +81,7 @@ def dfaPalabras(listaLetras,prohibidas):
     noIniciales= noIniciales[:-1] + ")"
     G.anadirArco(0,0,noIniciales)
             
-    # Pilas globales para la clasificacion de las letras
-    # Estas estructuras seran usadas por todas las llamadas recursivas
-    global nuevos
-    nuevos=[]
-    global delegar
-    delegar=[]
-    global noDelegables
-    noDelegables=[]
+    noDelegables=[]  
 
     i=0
     # Para cada nodo creado, calcular el resto de los caminos 
@@ -100,10 +94,14 @@ def dfaPalabras(listaLetras,prohibidas):
             else:
                 nuevasPalabras.append(palabra)
         i= i+1        
-        dfaAux(nuevasPalabras,i)
+        dfaAux(nuevasPalabras,i,noDelegables)
     return G
 
-def dfaAux(palabras,nodoActual):
+
+
+def dfaAux(palabras,nodoActual,noDelegables):
+    nuevos=[]
+    delegar=[]
     # Clasificar letras en delegables a otros estados o nuevos estados
     for letra in listaL:
         p=False
@@ -163,7 +161,7 @@ def dfaAux(palabras,nodoActual):
             else:
                 nuevasPalabras.append(list_prohibidas[i])
         i= i+1        
-        dfaAux(nuevasPalabras,nodo)
+        dfaAux(nuevasPalabras,nodo,noDelegables)
     
         
     
