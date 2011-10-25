@@ -1,3 +1,4 @@
+import itertools
 import grafo
 import sys
     
@@ -128,7 +129,7 @@ def dfaAux(palabras,nodoActual,noDelegables):
         i= G.anadirNodo()
         G.anadirArco(nodoActual,i,letra)
         sucesores[i]= letra
-        nuevos.remove(letra)
+        nuevos.remove(letra) 
 
     # Delegar letras a otros estados
     # Primero formamos la expresion regular de todas las letras que van
@@ -165,11 +166,21 @@ def dfaAux(palabras,nodoActual,noDelegables):
         i= i+1        
         dfaAux(nuevasPalabras,nodo,noDelegables)
     
-        
-    
-        
-        
-            
+def crearER(palabras,er):
+	palabras_=[]
+	for p in palabras:
+		for i in range(palabras[p]):
+			palabras_.append(p)
+
+	_palabras = itertools.permutations(palabras_)
+	ER = ''
+	for l in _palabras:
+		aux = '(?:' + er
+		for p in l:
+			aux = aux + p + er
+		aux = aux + ')'
+		ER = ER + aux + '|'
+	return ER[:len(ER)-1]
 
 
 

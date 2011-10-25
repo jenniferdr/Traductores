@@ -18,14 +18,14 @@ elif((len(sys.argv) == 3) and ((sys.argv[1][0] != '+' and sys.argv[1][0] != '-')
     
 (palabras,archivos) = funciones.extraerArgumentos(sys.argv)
 
-print archivos
-
 if((len(palabras) == 0) or (len(archivos) == 0)):
 	print ("Faltan parametros: debe haber por lo menos una palabra y"
 	       "un archivo")
 	sys.exit(0)
     
-files = funciones.procesarArchivos(archivos)    
+files = funciones.procesarArchivos(archivos)
+if(len(files) == 0):
+	sys.exit(0)
 
 # Obtener un diccionario de palabras permitidas y lista de prohibidas
 (dic_permitidas,list_prohibidas) =funciones.procesarPalabras(palabras)
@@ -33,13 +33,14 @@ files = funciones.procesarArchivos(archivos)
 # Lista de letras pertenecientes a las palabras prohibidas
 listaLP= funciones.listaLetras(list_prohibidas)
 
-## dfa= new Graph()
 # DFA formado con las letras de las palabras prohibidas
 dfa= funciones.dfaPalabras(listaLP,list_prohibidas)
 
 # Expresion regular de palabras formadas con las letras
 # de palabras prohibidas. 
-palabras_LP=dfa.convertirDFA_ER()
+palabras_LP = dfa.convertirDFA_ER()
+
+print palabras_LP
 
 # ER para representar cualquier caracter menos las que aparecen
 # en las palabras prohibidas
@@ -49,11 +50,12 @@ for l in listaLP:
 strLNP += "]"
 
 # ER para representar cualquier palabra menos las prohibidas     
-NP= "("+strLNP+"*("+palabras_LP+strLNP+"+|"+strLNP+")*"+palabras_LP+"?)" 
-
+NP= "("+strLNP+"*("+palabras_LP+strLNP+"+|"+strLNP+")*"+palabras_LP+"?)"
 # Con todas sus permutaciones de palabras en diccionario 
 #ER=..NP palabra NP palabra.. 
 ## compilarla
+ER = funciones.crearER(dic_permitidas,NP)
+re.compile(palabras_LP)
 
 for file in files:
     for line in file:
@@ -63,8 +65,6 @@ for file in files:
         print "sigo en el loop"
     file.close()
     print "que hago" 
-
-# Y finnn :) 
 
            
 
