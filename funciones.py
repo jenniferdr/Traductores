@@ -128,7 +128,7 @@ def dfaAux(palabras,nodoActual,noDelegables):
         i= G.anadirNodo()
         G.anadirArco(nodoActual,i,letra)
         sucesores[i]= letra
-        sucesores.remove(letra)
+        nuevos.remove(letra)
 
     # Delegar letras a otros estados
     # Primero formamos la expresion regular de todas las letras que van
@@ -145,7 +145,7 @@ def dfaAux(palabras,nodoActual,noDelegables):
 
     # Luego delegamos las letras que van a los estados que no es el inicial
     for letra in delegar[:]:
-        nodoDest=grafo.G.nodoDestino(0,delegar.pop())
+        nodoDest=G.nodoDestino(0,delegar.pop())
         G.anadirArco(nodoActual,nodoDest,letra)
 
     # Pila de nuevos,delegar y noDelegables vaciadas 
