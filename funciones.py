@@ -1,5 +1,5 @@
 import grafo
-
+import sys
     
 def extraerArgumentos(argumentos):
 	palabras = []
@@ -32,6 +32,8 @@ def procesarArchivos(archivos):
 			pointer_files.append(open(f, "r"))		
 		except:
 			print "Error al abrir el archivo '" + f + "'"
+			if(len(archivos) == 1):
+				sys.exit(0)
 	return pointer_files
 
     
