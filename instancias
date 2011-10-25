@@ -37,10 +37,7 @@ dfa= funciones.dfaPalabras(listaLP,list_prohibidas)
 
 # Expresion regular de palabras formadas con las letras
 # de palabras prohibidas. 
-print dfa.arcos_in
-print dfa.arcos_out
 palabras_LP = dfa.convertirDFA_ER()
-print palabras_LP
 
 # ER para representar cualquier caracter menos las que aparecen
 # en las palabras prohibidas
