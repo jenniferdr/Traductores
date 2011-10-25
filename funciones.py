@@ -43,14 +43,16 @@ def listaLetras(palabras):
     return letras
 
             
-def dfaPalabras(listaLetras):
+def dfaPalabras(listaLetras,prohibidas):
     global G
     G=grafo.Digrafo()
-    G.addNodo()
+    G.anadirNodo()
     global listaL
     listaL= listaLetras
     global primeras
     primeras=[]
+    global list_prohibidas
+    list_prohibidas=prohibidas
     
     #Tomar la primera letra de cada palabra
     for palabra in list_prohibidas:
@@ -66,8 +68,8 @@ def dfaPalabras(listaLetras):
             
     #Crear un nodo y un arco para la primera letra de cada palabra prohibida
     for letra in primeras:
-            i=G.addNodo()
-            G.addArc(0,i,letra)
+            i=G.anadirNodo()
+            G.anadirArco(0,i,letra)
 
     # Hacer un bucle en el estado inicial con las letras no iniciales
     noIniciales="("
@@ -76,7 +78,7 @@ def dfaPalabras(listaLetras):
             noIniciales+= (l+"|")
             
     noIniciales= noIniciales[:-1] + ")"
-    G.addArc(0,0,noIniciales)
+    G.anadirArco(0,0,noIniciales)
             
     # Pilas globales para la clasificacion de las letras
     # Estas estructuras seran usadas por todas las llamadas recursivas
@@ -99,6 +101,7 @@ def dfaPalabras(listaLetras):
                 nuevasPalabras.append(palabra)
         i= i+1        
         dfaAux(nuevasPalabras,i)
+    return G
 
 def dfaAux(palabras,nodoActual):
     # Clasificar letras en delegables a otros estados o nuevos estados
@@ -108,22 +111,22 @@ def dfaAux(palabras,nodoActual):
         
         for palabra in palabras:
             if(len(palabra)==1): termina=True
-            if(palabra[0]==l):
+            if(palabra[0]==letra):
                 p=True
-                if(l in noDelegables):
-                    if(not(l in nuevos)): nuevos.append(l)
+                if(letra in noDelegables):
+                    if(not(letra in nuevos)): nuevos.append(letra)
                 else:
-                    if(not(l in delegar)): delegar.append(l)
+                    if(not(letra in delegar)): delegar.append(letra)
         if(not(p)):
-            if(not(l in delegar)): delegar.append(l)
+            if(not(letra in delegar)): delegar.append(letra)
         if(termina):
-            if(l in nuevos): nuevos.remove(l)
-            if(l in delegar): delegar.remove(l)
+            if(letra in nuevos): nuevos.remove(letra)
+            if(letra in delegar): delegar.remove(letra)
     sucesores={}
     # Crear los nuevos nodos o estados
     for letra in nuevos[:]:
-        i= grafo.G.addNodo()
-        grafo.G.addArco(nodoActual,i,letra)
+        i= grafo.G.anadirNodo()
+        grafo.G.anadirArco(nodoActual,i,letra)
         sucesores[i]= letra
         sucesores.remove(letra)
 
@@ -138,12 +141,12 @@ def dfaAux(palabras,nodoActual):
     aEdoIni= aEdoIni[:-1] + ")"
     # Agragar el arco al estado inicial
     if(len(aEdoIni)>1):
-        grafo.G.addArco(nodoActual,0,aEdoIni)
+        grafo.G.anadirArco(nodoActual,0,aEdoIni)
 
     # Luego delegamos las letras que van a los estados que no es el inicial
     for letra in delegar[:]:
         nodoDest=grafo.G.nodoDestino(0,delegar.pop())
-        grafo.G.addArco(nodoActual,nodoDest,letra)
+        grafo.G.anadirArco(nodoActual,nodoDest,letra)
 
     # Pila de nuevos,delegar y noDelegables vaciadas 
     noDelegables=[]

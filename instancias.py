@@ -1,6 +1,7 @@
 import sys
 import funciones
-  
+import grafo
+
 if('-' in sys.argv):
 	sys.argv.remove('-')
 
@@ -20,13 +21,7 @@ if((len(palabras) == 0) or (len(archivos) == 0)):
     
 files = funciones.procesarArchivos(archivos)    
 
-# Palabras permitidas con el numero de veces que deben aparecer
-global dic_permitidas
-
-# Lista de palabras que no deben aparecer
-# o aparecen un numero exacto de veces 
-global list_prohibidas
-
+# Obtener un diccionario de palabras permitidas y lista de prohibidas
 (dic_permitidas,list_prohibidas) =funciones.procesarPalabras(palabras)
 
 # Lista de letras pertenecientes a las palabras prohibidas
@@ -34,30 +29,30 @@ listaLP= funciones.listaLetras(list_prohibidas)
 
 ## dfa= new Graph()
 # DFA formado con las letras de las palabras prohibidas
-dfa= funciones.dfaPalabras(listaLP)
+dfa= funciones.dfaPalabras(listaLP,list_prohibidas)
 
 # Expresion regular de palabras formadas con las letras
 # de palabras prohibidas. 
-palabras_LP=funciones.convertirA_ER(dfa)
+palabras_LP=dfa.convertirDFA_ER()
 
 # ER para representar cualquier caracter menos las que aparecen
 # en las palabras prohibidas
 strLNP="[^"
 for l in listaLP:
-    strLP += l
-str += "]"
+    strLNP += l
+strLNP += "]"
 
 # ER para representar cualquier palabra menos las prohibidas     
 NP= "("+strLNP+"*("+palabras_LP+strLNP+"+|"+strLNP+")*"+palabras_LP+"?)" 
-
+print NP
 # Con todas sus permutaciones de palabras en diccionario 
-ER=..NP palabra NP palabra.. 
+#ER=..NP palabra NP palabra.. 
 ## compilarla
 
-for file in files:
-    for line in file:
-        if(re.match("^"+ER+"$",line):
-           print line
+#for file in files:
+#    for line in file:
+#        if(re.match("^"+ER+"$",line):
+#           print line
 
 # Y finnn :) 
 

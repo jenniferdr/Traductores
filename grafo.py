@@ -59,12 +59,12 @@ class Digrafo:
                 return (dst_,expr)
         return False
 
-    def nodoDst(self,src,expr):
+    def nodoDestino(self,src,expr):
         for dst in self.arcos_in[src]:
             if(dst[1] == expr):
                 return dst[0]
 
-    def dfa2er(self):
+    def convertirDFA_ER(self):
         #Crear estados 'i' y 'f'
         self.arcos_in['i'] = []
         self.arcos_out['i'] = []
