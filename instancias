@@ -57,7 +57,7 @@ NP= "("+strLNP+"*("+palabras_LP+strLNP+"+|"+strLNP+")*"+palabras_LP+"?)"
 
 for file in files:
     for line in file:
-        if(re.match("^"+ER+"$",line)):
+        if(re.match("^"+NP+"$",line)):
            print line
 
 # Y finnn :) 
