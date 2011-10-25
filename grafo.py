@@ -83,7 +83,7 @@ class Digrafo:
             if(star):
                 self.arcos_out[q].remove(star)
                 self.arcos_in[q].remove(star)
-                star = '(' + star[1] + ')*'
+                star = '(?:' + star[1] + ')*'
             else:
                 star = ''
             #Se crean arcos que se conectaban con el estado q
@@ -94,11 +94,13 @@ class Digrafo:
                     er = expr1 + star + expr2
                     arc = self.isArco(i,o)
                     if(arc):
+						# Si existe el arco, existe una expresion regular asociada
                         self.removerArco(i,o)
-                        er = '(' + '(' + arc[1] + ')' + '|' + '(' + er + ')' + ')'
+                        er = '(?:' + arc[1] + ')|(?:' + er + ')'
                         self.anadirArco(i,o,er)
                     else:
-                        er = '(' + er + ')'
+						# Como el arco no existe, se crea uno nuevo
+                        er = '(?:' + er + ')'
                         self.anadirArco(i,o,er)
             self.removerNodo(q)
         return self.arcos_in['i'][0][1]

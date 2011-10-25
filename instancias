@@ -49,12 +49,11 @@ for l in listaLP:
 strLNP += "]"
 
 # ER para representar cualquier palabra menos las prohibidas     
-NP= "("+strLNP+"*("+palabras_LP+strLNP+"+|"+strLNP+")*"+palabras_LP+"?)"
+NP= "(?:"+strLNP+"*(?:"+palabras_LP+strLNP+"+|"+strLNP+")*"+palabras_LP+"?)"
 # Con todas sus permutaciones de palabras en diccionario 
 #ER=..NP palabra NP palabra.. 
 ## compilarla
 ER = funciones.crearER(dic_permitidas,NP)
-re.compile(palabras_LP)
 
 for file in files:
     for line in file:
