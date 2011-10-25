@@ -51,7 +51,7 @@ def dfaPalabras(listaLetras,prohibidas):
     G=grafo.Digrafo()
     G.anadirNodo()
     global listaL
-    listaL= listaLetras
+    listaL= listaLetras[:]
     global primeras
     primeras=[]
     global list_prohibidas
@@ -61,7 +61,7 @@ def dfaPalabras(listaLetras,prohibidas):
     for palabra in list_prohibidas:
 	    if(not(palabra[0] in primeras)):
 		    primeras.append(palabra[0])
-
+    
     #Si alguna palabra prohibida es de long 1 esa letra se debe eliminar
     # del conjunto de letras a utilizar en el automata
     for palabra in list_prohibidas:

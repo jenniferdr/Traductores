@@ -59,6 +59,10 @@ for file in files:
     for line in file:
         if(re.match("^"+NP+"$",line)):
            print line
+           
+        print "sigo en el loop"
+    file.close()
+    print "que hago" 
 
 # Y finnn :) 
 
