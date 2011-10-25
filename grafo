@@ -109,6 +109,7 @@ g=Digrafo()
 g.anadirNodo()
 g.anadirNodo()
 g.anadirNodo()
+print "hola"
 g.anadirArco(0,0,'x')
 g.anadirArco(0,1,'a')
 g.anadirArco(0,2,'b')
