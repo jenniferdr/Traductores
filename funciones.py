@@ -79,11 +79,11 @@ def dfaPalabras(listaLetras,prohibidas):
     noIniciales="(?:"
     for l in listaL:
         if(not(l in primeras)):
-            noIniciales = noIniciales + '|'
+            noIniciales += l+'|'
     
-    noIniciales = noIniciales + ")"
-    
-    G.anadirArco(0,0,noIniciales)
+    noIniciales = noIniciales[:-1] + ")"
+    if(len(noIniciales)>3):
+	    G.anadirArco(0,0,noIniciales)
             
     noDelegables=[]  
 
@@ -142,7 +142,7 @@ def dfaAux(palabras,nodoActual,noDelegables):
         
     aEdoIni= aEdoIni[:-1] + ")"
     # Agragar el arco al estado inicial
-    if(len(aEdoIni)>1):
+    if(len(aEdoIni)>3):
         G.anadirArco(nodoActual,0,aEdoIni)
 
     # Luego delegamos las letras que van a los estados que no es el inicial
