@@ -59,9 +59,11 @@ else:
     ER= NP
     
 print ER
+ER= "^"+ER+"$"
+expReg= re.compile(ER)
 
 for file in files:
     for line in file:
-        if(re.match("^"+ER+"$",line)):
+        if(expReg.match(line)):
            print file.name + ": " + line
     file.close()
