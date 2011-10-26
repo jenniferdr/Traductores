@@ -1,7 +1,10 @@
 import itertools
 import grafo
 import sys
-    
+
+# Funcion procesa los argumentos recibidos por la linea de comandos
+# Recibe una lista de argumentos
+# Retorna una tupla con dos listas: las reglas y los archivos    
 def extraerArgumentos(argumentos):
 	palabras = []
 	archivos = []
@@ -12,7 +15,13 @@ def extraerArgumentos(argumentos):
 			i = i +1
 	archivos = argumentos[i:]
 	return (palabras,archivos)
-	
+
+# Funcion que procesa la lista de reglas recibidas como argumentos
+# Recibe una lista de palabras las cuales comienzan por + o -
+# Retorna una tupla la cual contiene:
+#  - Un diccionario cuya claves son las palabras permitidas y valor 
+#    numero de repeticiones 
+#  - Una lista de palabras prohibidas
 def procesarPalabras(palabras):
 	permitidas = {}
 	prohibidas = []
@@ -26,6 +35,9 @@ def procesarPalabras(palabras):
 			prohibidas.append(p[1:])
 	return (permitidas,prohibidas)
 	
+# Funcion que procesa los archivos aportados en los argumentos
+# Recibe una lista con los nombres de los archivos
+# Retorna una lista de objetos del tipo file para cada archivo
 def procesarArchivos(archivos):
 	pointer_files = []
 	for f in archivos:
@@ -37,7 +49,10 @@ def procesarArchivos(archivos):
 				sys.exit(0)
 	return pointer_files
 
-    
+# Funcion que procesa las palabras de una lista
+# Recibe una lista de palabras 
+# Retorna una lista con las letras que conforman las palabras
+# recibidas, sin repeticiones
 def listaLetras(palabras):
     letras=[]
     for p in palabras:
@@ -46,7 +61,10 @@ def listaLetras(palabras):
                 letras.append(l)
     return letras
 
-            
+# Funcion que retorna un automata deterministico dadas una lista 
+# de letras y una de palabras
+# Retorna un DFA cuyos estados finales aceptan palabras exceptuando
+# aquellas que pertenecen a la lista de palabras 'prohibidas'
 def dfaPalabras(listaLetras,prohibidas):
     global G
     G=grafo.Digrafo()
@@ -102,7 +120,8 @@ def dfaPalabras(listaLetras,prohibidas):
     return G
 
 
-
+# Funcion auxiliar usada por dfaPalabras
+# Contruye el resto de los caminos del DFA, partiendo de ciertos nodos
 def dfaAux(palabras,nodoActual,noDelegables):
     nuevos=[]
     delegar=[]
@@ -141,7 +160,7 @@ def dfaAux(palabras,nodoActual,noDelegables):
         aEdoIni+= letra + "|"
         
     aEdoIni= aEdoIni[:-1] + ")"
-    # Agragar el arco al estado inicial
+    # Agregar el arco al estado inicial
     if(len(aEdoIni)>3):
         G.anadirArco(nodoActual,0,aEdoIni)
 
@@ -166,7 +185,12 @@ def dfaAux(palabras,nodoActual,noDelegables):
                 nuevasPalabras.append(list_prohibidas[i])
         i= i+1        
         dfaAux(nuevasPalabras,nodo,noDelegables)
-    
+
+# Funcion que construye una expresion regular
+# Recibe una lista de palabras y un expresion regular
+# Retorna la expresion regular compuesta por cada palabra 
+# de la lista 'palabras', tomadas como una expresion regular,
+# y la expresion regular 'er'
 def crearER(palabras,er):
 	palabras_=[]
 	for p in palabras:
@@ -182,6 +206,3 @@ def crearER(palabras,er):
 		aux = aux + ')'
 		ER = ER + aux + '|'
 	return ER[:len(ER)-1]
-
-
-
