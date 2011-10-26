@@ -1,4 +1,9 @@
 #!/usr/bin/python
+
+# Proyecto I: Reconocedor de Patrones
+# Autores: Jennifer Dos Reis 08-10323
+#          Hancel Gonzalez   07-40983
+
 import sys
 import funciones
 import grafo
@@ -62,6 +67,8 @@ print ER
 ER= "^"+ER+"$"
 expReg= re.compile(ER)
 
+# Evaluacion de la expresion regular ER en cada linea
+# de cada archivo aportado
 for file in files:
     for line in file:
         if(expReg.match(line)):
