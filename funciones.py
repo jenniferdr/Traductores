@@ -65,7 +65,7 @@ def listaLetras(palabras):
 # de letras y una de palabras
 # Retorna un DFA cuyos estados finales aceptan palabras exceptuando
 # aquellas que pertenecen a la lista de palabras 'prohibidas'
-def dfaPalabras(listaLetras,prohibidas):
+def dfaPalabras(listaLetras,prohibidas,strLNP):
     global G
     G=grafo.Digrafo()
     G.anadirNodo()
@@ -75,11 +75,18 @@ def dfaPalabras(listaLetras,prohibidas):
     primeras=[]
     global list_prohibidas
     list_prohibidas=prohibidas
+
+    print "Letras no permitidas: "+strLNP
+    print "Conjunto de letras prohib: "
+    print listaL
     
     #Tomar la primera letra de cada palabra
     for palabra in list_prohibidas:
 	    if(not(palabra[0] in primeras)):
 		    primeras.append(palabra[0])
+            
+    print "Las primeras letras"
+    print primeras
     
     #Si alguna palabra prohibida es de long 1 esa letra se debe eliminar
     # del conjunto de letras a utilizar en el automata
@@ -87,22 +94,29 @@ def dfaPalabras(listaLetras,prohibidas):
 	    if(len(palabra)==1): 
 		    listaL.remove(palabra[0])
 		    primeras.remove(palabra[0])
-            
+
+    print "Nuevo conjunto de letras y primeras"
+    print listaL
+        
     #Crear un nodo y un arco para la primera letra de cada palabra prohibida
     for letra in primeras:
             i=G.anadirNodo()
             G.anadirArco(0,i,letra)
-
+            print "Se hizo un arco del inicial letra "+letra+" nodo "
+            print i
+    print primeras
     # Hacer un bucle en el estado inicial con las letras no iniciales
     noIniciales="(?:"
-    for l in listaL:
-        if(not(l in primeras)):
-            noIniciales += l+'|'
-    
-    noIniciales = noIniciales[:-1] + ")"
-    if(len(noIniciales)>3):
-	    G.anadirArco(0,0,noIniciales)
-            
+    if(len(listaL)>0):
+        for l in listaL:
+            if(not(l in primeras)):
+                noIniciales += l+'|'
+
+    noIniciales += strLNP+")"
+    G.anadirArco(0,0,noIniciales)
+    print "bucle en el inicial con: "
+    print noIniciales
+        
     noDelegables=[]  
 
     i=0
@@ -111,28 +125,34 @@ def dfaPalabras(listaLetras,prohibidas):
         nuevasPalabras=[]
         for palabra in list_prohibidas:
             if(palabra[0]==l):
+                print "La letra "+l+" es igual a "+palabra[0]
                 nuevasPalabras.append(palabra[1:])
                 noDelegables.append(palabra[1])
             else:
                 nuevasPalabras.append(palabra)
         i= i+1        
-        dfaAux(nuevasPalabras,i,noDelegables)
+        dfaAux(nuevasPalabras,i,noDelegables,strLNP)
     return G
 
 
 # Funcion auxiliar usada por dfaPalabras
 # Contruye el resto de los caminos del DFA, partiendo de ciertos nodos
-def dfaAux(palabras,nodoActual,noDelegables):
+def dfaAux(palabras,nodoActual,noDelegables,strLNP):
     nuevos=[]
     delegar=[]
+    print "Soy el nodo"
+    print nodoActual
+    print "No puedo formar las palabras"
+    print palabras
+    
     # Clasificar letras en delegables a otros estados o nuevos estados
     for letra in listaL:
         p=False
         termina= False
         
         for palabra in palabras:
-            if(len(palabra)==1): termina=True
             if(palabra[0]==letra):
+                if(len(palabra)==1): termina=True
                 p=True
                 if(letra in noDelegables):
                     if(not(letra in nuevos)): nuevos.append(letra)
@@ -143,6 +163,9 @@ def dfaAux(palabras,nodoActual,noDelegables):
         if(termina):
             if(letra in nuevos): nuevos.remove(letra)
             if(letra in delegar): delegar.remove(letra)
+    print "delegar y nuevos"
+    print delegar
+    print nuevos
     sucesores={}
     # Crear los nuevos nodos o estados
     for letra in nuevos[:]:
@@ -156,13 +179,14 @@ def dfaAux(palabras,nodoActual,noDelegables):
     # al estado inicial
     aEdoIni="(?:"
     for letra in delegar[:]:
-        if(not(letra in primeras)): delegar.remove(letra)
-        aEdoIni+= letra + "|"
+        if(not(letra in primeras)):
+            delegar.remove(letra)
+            aEdoIni+= letra + "|"
         
-    aEdoIni= aEdoIni[:-1] + ")"
+    aEdoIni += strLNP+")"
     # Agregar el arco al estado inicial
-    if(len(aEdoIni)>3):
-        G.anadirArco(nodoActual,0,aEdoIni)
+    G.anadirArco(nodoActual,0,aEdoIni)
+    print "estoy enviando el arco"+ aEdoIni +" al inicial "
 
     # Luego delegamos las letras que van a los estados que no es el inicial
     for letra in delegar[:]:
@@ -184,7 +208,7 @@ def dfaAux(palabras,nodoActual,noDelegables):
             else:
                 nuevasPalabras.append(list_prohibidas[i])
         i= i+1        
-        dfaAux(nuevasPalabras,nodo,noDelegables)
+        dfaAux(nuevasPalabras,nodo,noDelegables,strLNP)
 
 # Funcion que construye una expresion regular
 # Recibe una lista de palabras y un expresion regular
