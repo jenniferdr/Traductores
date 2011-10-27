@@ -37,13 +37,6 @@ if(len(files) == 0):
 # Lista de letras pertenecientes a las palabras prohibidas
 listaLP= funciones.listaLetras(list_prohibidas)
 
-# DFA formado con las letras de las palabras prohibidas
-dfa= funciones.dfaPalabras(listaLP,list_prohibidas)
-
-# Expresion regular de palabras formadas con las letras
-# de palabras prohibidas. 
-palabras_LP = dfa.convertirDFA_ER()
-
 # ER para representar cualquier caracter menos las que aparecen
 # en las palabras prohibidas
 strLNP="[^"
@@ -51,11 +44,20 @@ for l in listaLP:
     strLNP += l
 strLNP += "]"
 
+# DFA formado con las letras de las palabras prohibidas
+dfa= funciones.dfaPalabras(listaLP,list_prohibidas,strLNP)
+
+# Expresion regular de palabras formadas con las letras
+# de palabras prohibidas. 
+palabras_LP = dfa.convertirDFA_ER()
+print "La expresion regular NP es: "
+print palabras_LP
 # ER para representar cualquier palabra menos las prohibidas
-if(len(strLNP)>3):
-    NP= "(?:"+strLNP+"*(?:"+palabras_LP+strLNP+"+|"+strLNP+")*"+palabras_LP+"?)"
+if(len(list_prohibidas)>0):
+    NP= palabras_LP
 else:
     NP= ".*"
+
     
 # Con todas sus permutaciones de palabras en diccionario 
 if(len(dic_permitidas)>0):
@@ -64,13 +66,13 @@ else:
     ER= NP
     
 print ER
-ER= "^"+ER+"$"
+ER= "^("+ER+")$"
 expReg= re.compile(ER)
 
 # Evaluacion de la expresion regular ER en cada linea
 # de cada archivo aportado
 for file in files:
     for line in file:
-        if(expReg.match(line)):
+        if(re.match(ER,line)):
            print file.name + ": " + line
     file.close()
