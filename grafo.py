@@ -126,7 +126,7 @@ class Digrafo:
                         print "Pero como ya existe ese arco"
                         # Si existe el arco, existe una expresion regular asociada
                         self.removerArco(i,o)
-                        er = '(?:' + arc[1] + ')|(?:' + er + ')'
+                        er = '(?:(?:' + arc[1] + ')|(?:' + er + '))'
                         print "Anado uno asi "+er
                         self.anadirArco(i,o,er)
                     else:
