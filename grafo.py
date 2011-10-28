@@ -80,6 +80,7 @@ class Digrafo:
     # Retorna la expresion regular asociada al DFA (en caso 
     # de que el grafo sea tratado como tal)
     def convertirDFA_ER(self):
+        
         #Crear estados 'i' y 'f'
         self.arcos_in['i'] = []
         self.arcos_out['i'] = []
@@ -92,30 +93,45 @@ class Digrafo:
             self.anadirArco(f,'f','')
         #Eliminacion de arcos
         for q in range(self.nodos + 1):
+            print "Hola soy el nodo: "
+            print q
             #Verificacion de bucle en el nodo q
             star = self.isBucle(q)
             #Si es asi, se obtiene la expresion regular de cero o mas repeticiones
             if(star):
+                print "Y tengo un bucle:"
                 self.arcos_out[q].remove(star)
                 self.arcos_in[q].remove(star)
                 star = '(?:' + star[1] + ')*'
+                print star
             else:
                 star = ''
+                print "Y no tengo bucle"
             # Se crean arcos que se conectaban con el estado q
             in_ = self.arcos_out[q]
             out_ = self.arcos_in[q]
             for i,expr1 in in_:
+                print "A mi llega el arco: "
+                print expr1
+                print "Desde:"
+                print i
                 for o, expr2 in out_:
                     er = expr1 + star + expr2
+                    print "Concatenado con lo q sale da: "+er
                     arc = self.isArco(i,o)
+                    print "que llega a: "
+                    print o
                     if(arc):
                         # Si existe el arco, existe una expresion regular asociada
+                        print "Como ya existe el arco "
                         self.removerArco(i,o)
                         er = '(?:' + arc[1] + ')|(?:' + er + ')'
+                        print "Ahora queda asi: "
                         self.anadirArco(i,o,er)
                     else:
                         # Como el arco no existe, se crea uno nuevo
                         er = '(?:' + er + ')'
                         self.anadirArco(i,o,er)
             self.removerNodo(q)
+            print self.arcos_in
         return self.arcos_in['i'][0][1]
