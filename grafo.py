@@ -116,7 +116,7 @@ class Digrafo:
                     print "Y les puedo llevar hasta el nodo :"
                     print o
                     print "con la expresion "+expr2
-                    er = expr1 + star + expr2
+                    er = "(?:"+expr1+")" + star +"(?:"+expr2+")"
                     arc = self.isArco(i,o)
                     print "Por eso creo un arco desde, hasta "
                     print i
