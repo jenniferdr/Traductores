@@ -116,8 +116,7 @@ class Digrafo:
                 print "Desde:"
                 print i
                 for o, expr2 in out_:
-                    er = expr1 + star + expr2
-                    print "Concatenado con lo q sale da: "+er
+                    er = "(?:"+expr1+")" + star +"(?:"+expr2+")"
                     arc = self.isArco(i,o)
                     print "que llega a: "
                     print o
@@ -125,8 +124,7 @@ class Digrafo:
                         # Si existe el arco, existe una expresion regular asociada
                         print "Como ya existe el arco "
                         self.removerArco(i,o)
-                        er = '(?:' + arc[1] + ')|(?:' + er + ')'
-                        print "Ahora queda asi: "
+                        er = '(?:(?:' + arc[1] + ')|(?:' + er + '))'
                         self.anadirArco(i,o,er)
                     else:
                         # Como el arco no existe, se crea uno nuevo

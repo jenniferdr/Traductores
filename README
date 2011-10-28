@@ -1,0 +1,5 @@
+En caso de ser necesario, dar permisos de ejecucion al archivo "instancias" escribiendo en la linea de comandos:
+
+chmod +x instancias
+
+Ejecutarlo de la forma: instancias [+-]regla1 [[+-]regla2...[+-]reglan] [-] archivo1[archivo2...archivon]
