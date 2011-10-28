@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 # Proyecto I: Reconocedor de Patrones
 # Autores: Jennifer Dos Reis 08-10323
@@ -50,8 +51,7 @@ dfa= funciones.dfaPalabras(listaLP,list_prohibidas,strLNP)
 # Expresion regular de palabras formadas con las letras
 # de palabras prohibidas. 
 palabras_LP = dfa.convertirDFA_ER()
-print "La expresion regular NP es: "
-print palabras_LP
+
 # ER para representar cualquier palabra menos las prohibidas
 if(len(list_prohibidas)>0):
     NP= palabras_LP
