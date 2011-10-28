@@ -92,8 +92,6 @@ class Digrafo:
             self.anadirArco(f,'f','')
         #Eliminacion de arcos
         for q in range(self.nodos + 1):
-            print "Hola soy el nodo: "
-            print q
             #Verificacion de bucle en el nodo q
             star = self.isBucle(q)
             #Si es asi, se obtiene la expresion regular de cero o mas repeticiones
@@ -101,38 +99,23 @@ class Digrafo:
                 self.arcos_out[q].remove(star)
                 self.arcos_in[q].remove(star)
                 star = '(?:' + star[1] + ')*'
-                print "Y tengo un bucle: "+star
             else:
-                print "Y no tengo bucle"
                 star = ''
             # Se crean arcos que se conectaban con el estado q
             in_ = self.arcos_out[q]
             out_ = self.arcos_in[q]
             for i,expr1 in in_:
-                print "Del nodo "
-                print i
-                print "pueden llegar a mi con: "+expr1
                 for o, expr2 in out_:
-                    print "Y les puedo llevar hasta el nodo :"
-                    print o
-                    print "con la expresion "+expr2
                     er = "(?:"+expr1+")" + star +"(?:"+expr2+")"
                     arc = self.isArco(i,o)
-                    print "Por eso creo un arco desde, hasta "
-                    print i
-                    print o
-                    print "Con la expr "+ er
                     if(arc):
-                        print "Pero como ya existe ese arco"
                         # Si existe el arco, existe una expresion regular asociada
                         self.removerArco(i,o)
                         er = '(?:(?:' + arc[1] + ')|(?:' + er + '))'
-                        print "Anado uno asi "+er
                         self.anadirArco(i,o,er)
                     else:
                         # Como el arco no existe, se crea uno nuevo
                         er = '(?:' + er + ')'
                         self.anadirArco(i,o,er)
-                        print "Como el arco no existia queda asi: "+er
             self.removerNodo(q)
         return self.arcos_in['i'][0][1]

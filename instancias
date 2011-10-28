@@ -57,7 +57,6 @@ if(len(list_prohibidas)>0):
     NP= palabras_LP
 else:
     NP= ".*"
-
     
 # Con todas sus permutaciones de palabras en diccionario 
 if(len(dic_permitidas)>0):
