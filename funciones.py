@@ -8,12 +8,15 @@ import sys
 def extraerArgumentos(argumentos):
 	palabras = []
 	archivos = []
-	i = 1
-	for a in argumentos[1:]:
-		if(a[0] == '+' or a[0] == '-'):
+	found = False
+	for a in argumentos:
+		if(a == '-'): 
+			found = True
+		if((a[0] == '+' or a[0] == '-') and not(found)):
 			palabras.append(a)
-			i = i +1
-	archivos = argumentos[i:]
+		elif((found and a != '-') or (a[0] != '-' and a[0] != '+')):
+			archivos.append(a)
+		
 	return (palabras,archivos)
 
 # Funcion que procesa la lista de reglas recibidas como argumentos
