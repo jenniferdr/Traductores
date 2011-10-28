@@ -50,14 +50,12 @@ dfa= funciones.dfaPalabras(listaLP,list_prohibidas,strLNP)
 # Expresion regular de palabras formadas con las letras
 # de palabras prohibidas. 
 palabras_LP = dfa.convertirDFA_ER()
-print "La expresion regular NP es: "
-print palabras_LP
+
 # ER para representar cualquier palabra menos las prohibidas
 if(len(list_prohibidas)>0):
     NP= palabras_LP
 else:
     NP= ".*"
-
     
 # Con todas sus permutaciones de palabras en diccionario 
 if(len(dic_permitidas)>0):
