@@ -71,5 +71,6 @@ def t_NUM(t):
         print("Entero muy largo %d",t.value)
     return t
 
-def t_STRING(t):
-    r'""'
+#def t_STRING(t):
+#    r'"([^\n"]|\\")"'
+    # extraer valor del string
