@@ -5,6 +5,7 @@
 #           Jennifer Dos Reis 08-10323
 #
 # --------------------------------------------------
+import ply.lex as lex
 
 tokens= ('NUM','VAR','STRING','QUOT','LBRACK','RBRACK','MINUS'
          'COLON', 'RLIST','LLIST','COMMA','INT','LISTOF','TSTRING'
@@ -14,14 +15,13 @@ tokens= ('NUM','VAR','STRING','QUOT','LBRACK','RBRACK','MINUS'
          'FALSE','FBY','TBY','RPAREN','LPAREN','DOT','LEN',
          'INPUT','RANGE','SEMICOLON'
          )
+
 # ER de cada Token
 
-t_NUM=     r'[0-9]+'
 t_VAR=     r'[a-zA-Z][a-zA-Z0-9_]*'
-t_STRING=  r''
 t_QUOT=    r'"'
-t_LBRACK=  r'['
-t_RBRACK=  r']'
+t_LBRACK=  r'\['
+t_RBRACK=  r'\]'
 t_MINUS=   r'-'
 t_COLON=   r':'
 t_RLIST=   r'%]'
@@ -55,10 +55,21 @@ t_TRUE=    r'true'
 t_FALSE=   r'false'
 t_FBY=     r'fby'
 t_TBY=     r'tby'
-t_RPAREN=  r')'
-t_LPAREN=  r'('
+t_RPAREN=  r'\)'
+t_LPAREN=  r'\('
 t_DOT=     r'\.'
 t_LEN=     r'len'
 t_INPUT=   r'input'
 t_RANGE=   r'range'
 t_SEMICOLON= r';'
+
+def t_NUM(t):
+    r'\d+'
+    try:
+        t.value=int(t.value)
+    except ValueError:
+        print("Entero muy largo %d",t.value)
+    return t
+
+def t_STRING(t):
+    r'""'
