@@ -6,14 +6,14 @@
 #
 # --------------------------------------------------
 import ply.lex as lex
-
-tokens= ('NUM','VAR','STRING','QUOT','LBRACK','RBRACK','MINUS'
-         'COLON', 'RLIST','LLIST','COMMA','INT','LISTOF','TSTRING'
+import sys
+tokens= ('NUM','VAR','STRING','QUOT','LBRACK','RBRACK','MINUS',
+         'COLON', 'RLIST','LLIST','COMMA','INT','LISTOF','TSTRING',
          'TABLE','NEWTABLE','WHERE','EQ','ASIG','PLUS',
          'TIMES','DIV','MOD','POW','IF','THEN','ELSE',
          'AND','OR','NOT','NOTEQ','LT','GT','GTE','LTE','TRUE',
          'FALSE','FBY','TBY','RPAREN','LPAREN','DOT','LEN',
-         'INPUT','RANGE','SEMICOLON'
+         'INPUT','RANGE','SEMICOLON','WHITESPACES'
          )
 
 # ER de cada Token
@@ -24,8 +24,8 @@ t_LBRACK=  r'\['
 t_RBRACK=  r'\]'
 t_MINUS=   r'-'
 t_COLON=   r':'
-t_RLIST=   r'%]'
-t_LLIST=   r'[%'
+t_RLIST=   r'%\]'
+t_LLIST=   r'\[%'
 t_COMMA=   r','
 t_INT=     r'int'
 t_TSTRING= r'string'
@@ -44,7 +44,7 @@ t_IF=      r'if'
 t_THEN=    r'then'
 t_ELSE=    r'else'
 t_AND=     r'&'
-t_OR=      r'|'
+t_OR=      r'\|'
 t_NOT=     r'!'
 t_NOTEQ=   r'!='
 t_LT=      r'<'
@@ -62,6 +62,7 @@ t_LEN=     r'len'
 t_INPUT=   r'input'
 t_RANGE=   r'range'
 t_SEMICOLON= r';'
+t_ignore_WHITESPACES= r'\s+'
 
 def t_NUM(t):
     r'\d+'
@@ -71,6 +72,17 @@ def t_NUM(t):
         print("Entero muy largo %d",t.value)
     return t
 
-#def t_STRING(t):
-#    r'"([^\n"]|\\")"'
-    # extraer valor del string
+def t_STRING(t):
+    r'"([^"]|\")*"'
+    return t
+
+lexer= lex.lex()
+
+data= sys.argv[1]
+
+lexer.input(data)
+
+tok=lexer.token()
+while (tok):
+    print tok
+    tok=lexer.token()
