@@ -95,3 +95,23 @@ tok=lexer.token()
 while (tok):
     print tok, tok.type,tok.value,tok.lineno,tok.lexpos
     tok=lexer.token()
+
+# Reglas o Producciones de la Gramatica
+
+nombres={ }
+
+def p_s_declaraciones(t):
+    's : ig dec'
+    t[0]= t[1]+t[2]
+
+def p_S_expresiones(t):
+    'S : IG EXP'
+
+def p_empty(p):
+    'empty : '
+    pass
+
+def p_IG_salida(t):
+    'IG : EQ'
+    '   | empty'
+
