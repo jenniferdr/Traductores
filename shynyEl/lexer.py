@@ -100,18 +100,84 @@ while (tok):
 
 nombres={ }
 
-def p_s_declaraciones(t):
-    's : ig dec'
-    t[0]= t[1]+t[2]
-
-def p_S_expresiones(t):
-    'S : IG EXP'
-
+ 
+def p_program(t):
+    'program : igual declaraciones'
+    '        | igual expresion'
+    
 def p_empty(p):
     'empty : '
     pass
 
-def p_IG_salida(t):
-    'IG : EQ'
-    '   | empty'
+def p_igual_salida(t):
+    '''igual : EQ
+       | empty'''
 
+def p_declaraciones(t):
+    '''declaraciones :
+          VAR COLON type COMMA declaraciones COMMA expresion
+          | VAR COLON type ASIG expresion '''
+
+def p_type(t):
+    ''' type : INT
+             | STRING
+             | LISTOF INT 
+             | LISTOF STRING
+             | TABLE '''
+
+def p_expresion(t):
+    ''' expresion : operando
+                  | tabla
+                  | INPUT '''
+
+def p_operando(t):
+    ''' operando : operando operador aux
+                 | operando FBY aux
+                 | opTby
+                 | aux '''
+
+def p_aux(t):
+    ''' aux : NUMBER
+            | VAR
+            | m LPAREN operando RPAREN
+            | MINUS aux
+            | STRING
+            | list
+            | select 
+            | cuant
+            | VAR LBRACK operando RBRACK
+            | VAR LBRACK operando RBRACK DOT VAR
+            | VAR DOT VAR 
+            | LEN LPAREN operando RPAREN 
+            | RANGE LPAREN orerando COMMA operando RPAREN
+            '''
+
+def p_cuant(t):
+    'cuant : LLIST cuan VAR COLON operando COLON operando RLIST'
+# Aqui falta que se pueda iterar por una tabla 
+
+def p_list(t):
+     'list : LLIST VAR COLON operando COLON operando RLIST'
+     '     | LBRACK expList RBRACK'
+# Aqui tambien 
+def p_cuan(t):
+    '''cuan : operando
+            | operandoBool'''
+
+def p_operando(t):
+    '''operando : PLUS
+                | MINUS
+                | TIMES
+                | MOD
+                | POW
+                | DIV ''' 
+
+def p_expList(t):
+    '''expList : expList COMMA operando
+               | operando'''
+
+def p_opTby(t):
+    'operando TBY vars'
+
+def p_vars(t):
+    
