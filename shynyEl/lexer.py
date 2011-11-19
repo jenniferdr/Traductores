@@ -150,22 +150,21 @@ def p_aux(t):
             | VAR DOT VAR 
             | LEN LPAREN operando RPAREN 
             | RANGE LPAREN orerando COMMA operando RPAREN
-            '''
+       '''
 
 def p_cuant(t):
     'cuant : LLIST cuan VAR COLON operando COLON operando RLIST'
-# Aqui falta que se pueda iterar por una tabla 
 
 def p_list(t):
      'list : LLIST VAR COLON operando COLON operando RLIST'
      '     | LBRACK expList RBRACK'
-# Aqui tambien 
+ 
 def p_cuan(t):
     '''cuan : operando
             | operandoBool'''
 
-def p_operando(t):
-    '''operando : PLUS
+def p_operador(t):
+    '''operador : PLUS
                 | MINUS
                 | TIMES
                 | MOD
@@ -177,7 +176,58 @@ def p_expList(t):
                | operando'''
 
 def p_opTby(t):
-    'operando TBY vars'
+    'opTby : operando TBY LBRACK listVars RBRACK'
 
-def p_vars(t):
+def p_listVars(t):
+    '''listVars : listVars COMMA VAR
+                | VAR '''
+
+def p_select(t):
+    'select : IF expBool THEN expresion ELSE expresion'
+
+def p_comp(t):
+    '''comp : GT
+            | LT
+            | LTE
+            | GTE
+            | EQ
+            | NOTEQ '''
     
+def p_expBool(t):
+    '''expBool : expBool opBool condExp
+               | condExp
+               | neg LPAREN expBool RPAREN '''
+
+def p_opBool(t):
+    ''' opBool : AND
+               | OR '''
+
+def p_condExp(t):
+    '''condExp : operando comp operando
+               | TRUE
+               | FALSE
+               | neg LPAREN condExp RPAREN
+               | cuant
+               | neg cuant
+               | neg TRUE
+               | neg FALSE '''
+
+def p_neg(t):
+    '''neg : NOT
+           | empty '''
+
+def p_tabla(t):
+    'tabla : NEWTABLE LBRACK operando RBRACK WHERE col'
+
+def p_col(t):
+    ''' col : VAR COLON typ ASIG val
+            | col SEMICOLON VAR COLON typ ASIG val'''
+
+def p_typ(t):
+    '''typ : INT
+           | STRING'''
+
+def p_val(t):
+    '''val : operando
+           | INPUT '''
+
