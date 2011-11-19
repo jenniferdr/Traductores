@@ -85,70 +85,71 @@ def t_STRING(t):
 def t_error(t):
     print "Caracter '%s' no reconocido." % t.value[0]
     t.lexer.skip(1)
-    
+
 lexer= lex.lex()
 
-data= sys.argv[1]
+#data= sys.argv[1]
 
-lexer.input(data)
+#lexer.input(data)
 
-tok=lexer.token()
-while (tok):
-    print tok, tok.type,tok.value,tok.lineno,tok.lexpos
-    tok=lexer.token()
+#tok=lexer.token()
+#while (tok):
+#    print tok #, tok.type,tok.value,tok.lineno,tok.lexpos
+#    tok=lexer.token()
 
 # Reglas o Producciones de la Gramatica
 
+precedence = (
+    ('left','AND','OR'),
+	('right','UNOT'),
+	('nonassoc','LT','LTE','GT','GTE'),
+	('nonassoc','EQ','NOTEQ'),
+    ('left','PLUS','MINUS'),
+    ('left','TIMES','DIV'),
+    ('right','UMINUS'),
+    )
+
 nombres={}
 
- 
-def p_program(t):
+def p_program(p):
     'program : igual declaraciones'
     '        | igual expresion'
-    p[0] = p[1] + p[2]
-    print('program -> %s' % p[0])
-    
+
 def p_empty(p):
     'empty : '
     pass
 
 def p_igual_salida(p):
     '''igual : EQ
-       | empty'''
-    if p[1] == '=':
-        p[0] = p[1]
-    else:
-        p[0] = ''
-    print('igual -> %s' % p[0])
-	
-def p_declaraciones(t):
-    '''declaraciones :
-          VAR COLON type COMMA declaraciones COMMA expresion
-          | VAR COLON type ASIG expresion '''
+             | empty'''
 
-def p_type(t):
+def p_declaraciones(p):
+    '''declaraciones : VAR COLON type COMMA declaraciones COMMA expresion
+                     | VAR COLON type ASIG expresion ''' 
+
+def p_type(p):
     ''' type : INT
-             | STRING
+             | TSTRING
              | LISTOF INT 
-             | LISTOF STRING
+             | LISTOF TSTRING
              | TABLE '''
 
-def p_expresion(t):
+def p_expresion(p):
     ''' expresion : operando
                   | tabla
                   | INPUT '''
 
-def p_operando(t):
+def p_operando(p):
     ''' operando : operando operador aux
                  | operando FBY aux
                  | opTby
                  | aux '''
 
-def p_aux(t):
-    ''' aux : NUMBER
+def p_aux(p):
+    ''' aux : NUM
             | VAR
-            | m LPAREN operando RPAREN
-            | MINUS aux
+            | m LPAREN operando RPAREN %prec UMINUS
+            | MINUS aux %prec UMINUS
             | STRING
             | list
             | select 
@@ -157,95 +158,86 @@ def p_aux(t):
             | VAR LBRACK operando RBRACK DOT VAR
             | VAR DOT VAR 
             | LEN LPAREN operando RPAREN 
-            | RANGE LPAREN orerando COMMA operando RPAREN
-       '''
+            | RANGE LPAREN operando COMMA operando RPAREN '''
 
-def p_cuant(t):
+def p_m(p):
+    ''' m : MINUS %prec UMINUS
+          | empty'''
+
+def p_cuant(p):
     'cuant : LLIST cuan VAR COLON operando COLON operando RLIST'
 
-def p_list(t):
-     'list : LLIST VAR COLON operando COLON operando RLIST'
-     '     | LBRACK expList RBRACK'
- 
-def p_cuan(t):
-    '''cuan : operando
-            | operandoBool'''
+def p_list(p):
+    '''list : LLIST VAR COLON operando COLON operando RLIST
+            | LBRACK expList RBRACK'''
 
-def p_operador(t):
+def p_cuan(p):
+    '''cuan : operador
+            | opBool'''
+
+def p_operador(p):
     '''operador : PLUS
                 | MINUS
                 | TIMES
                 | MOD
                 | POW
-                | DIV ''' 
+                | DIV '''
 
-def p_expList(t):
+def p_expList(p):
     '''expList : expList COMMA operando
                | operando'''
 
-def p_opTby(t):
+def p_opTby(p):
     'opTby : operando TBY LBRACK listVars RBRACK'
 
-def p_listVars(t):
+def p_listVars(p):
     '''listVars : listVars COMMA VAR
                 | VAR '''
 
-def p_select(t):
+def p_select(p):
     'select : IF expBool THEN expresion ELSE expresion'
 
-def p_comp(t):
+def p_comp(p):
     '''comp : GT
             | LT
             | LTE
             | GTE
             | EQ
             | NOTEQ '''
-    
-def p_expBool(t):
+
+def p_expBool(p):
     '''expBool : expBool opBool condExp
                | condExp
                | neg LPAREN expBool RPAREN '''
 
-def p_opBool(t):
+def p_opBool(p):
     ''' opBool : AND
                | OR '''
 
-def p_condExp(t):
+def p_condExp(p):
     '''condExp : operando comp operando
-               | TRUE
-               | FALSE
                | neg LPAREN condExp RPAREN
-               | cuant
                | neg cuant
                | neg TRUE
                | neg FALSE '''
 
-def p_neg(t):
-    '''neg : NOT
+def p_neg(p):
+    '''neg : NOT %prec UNOT
            | empty '''
-
-def p_tabla(t):
+ 
+def p_tabla(p):
     'tabla : NEWTABLE LBRACK operando RBRACK WHERE col'
 
-def p_col(t):
+def p_col(p):
     ''' col : VAR COLON typ ASIG val
             | col SEMICOLON VAR COLON typ ASIG val'''
 
-def p_typ(t):
+def p_typ(p):
     '''typ : INT
-           | STRING'''
+           | TSTRING'''
 
-def p_val(t):
+def p_val(p):
     '''val : operando
            | INPUT '''
 
 parser = yacc.yacc()
-
-while True:
-   try:
-       s = raw_input('calc > ')
-   except EOFError:
-       break
-   if not s: continue
-   result = parser.parse(s)
-   print result
