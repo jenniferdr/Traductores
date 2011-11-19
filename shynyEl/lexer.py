@@ -6,6 +6,7 @@
 #
 # --------------------------------------------------
 import ply.lex as lex
+import ply.yacc as yacc
 import sys
 
 reserved= {
@@ -98,21 +99,28 @@ while (tok):
 
 # Reglas o Producciones de la Gramatica
 
-nombres={ }
+nombres={}
 
  
 def p_program(t):
     'program : igual declaraciones'
     '        | igual expresion'
+    p[0] = p[1] + p[2]
+    print('program -> %s' % p[0])
     
 def p_empty(p):
     'empty : '
     pass
 
-def p_igual_salida(t):
+def p_igual_salida(p):
     '''igual : EQ
        | empty'''
-
+    if p[1] == '=':
+        p[0] = p[1]
+    else:
+        p[0] = ''
+    print('igual -> %s' % p[0])
+	
 def p_declaraciones(t):
     '''declaraciones :
           VAR COLON type COMMA declaraciones COMMA expresion
@@ -177,7 +185,15 @@ def p_expList(t):
                | operando'''
 
 def p_opTby(t):
-    'operando TBY vars'
+    'operando TBY vars'	
+	
+parser = yacc.yacc()
 
-def p_vars(t):
-    
+while True:
+   try:
+       s = raw_input('calc > ')
+   except EOFError:
+       break
+   if not s: continue
+   result = parser.parse(s)
+   print result
