@@ -28,15 +28,15 @@ reserved= {
     'range':'RANGE'    
     }
 
-tokens= ['NUM','VAR','STRING','QUOT','LBRACK','RBRACK','MINUS',
+tokens= ['NUM','VAR','STRING','LBRACK','RBRACK','MINUS',
          'COLON', 'RLIST','LLIST','COMMA','EQ','ASIG','PLUS',
          'TIMES','DIV','MOD','POW','AND','OR','NOT','NOTEQ','LT',
          'GT','GTE','LTE','RPAREN','LPAREN','DOT','SEMICOLON',
-         'WHITESPACES'] + list(reserved.values())
+        ] + list(reserved.values())
 
 # ER de cada Token
 
-t_QUOT=    r'"'
+#t_QUOT=    r'"'
 t_LBRACK=  r'\['
 t_RBRACK=  r'\]'
 t_MINUS=   r'-'
@@ -88,14 +88,14 @@ def t_error(t):
 
 lexer= lex.lex()
 
-#data= sys.argv[1]
+data= sys.argv[1]
 
-#lexer.input(data)
+lexer.input(data)
 
-#tok=lexer.token()
-#while (tok):
-#    print tok #, tok.type,tok.value,tok.lineno,tok.lexpos
-#    tok=lexer.token()
+tok=lexer.token()
+while (tok):
+    print tok #, tok.type,tok.value,tok.lineno,tok.lexpos
+    tok=lexer.token()
 
 # Reglas o Producciones de la Gramatica
 
@@ -105,7 +105,7 @@ precedence = (
 	('nonassoc','LT','LTE','GT','GTE'),
 	('nonassoc','EQ','NOTEQ'),
     ('left','PLUS','MINUS'),
-    ('left','TIMES','DIV'),
+    ('left','TIMES','DIV','MOD'),
     ('right','UMINUS'),
     )
 
@@ -114,6 +114,7 @@ nombres={}
 def p_program(p):
     'program : igual declaraciones'
     '        | igual expresion'
+    print(p)
 
 def p_empty(p):
     'empty : '
@@ -162,7 +163,8 @@ def p_aux(p):
 
 def p_m(p):
     ''' m : MINUS %prec UMINUS
-          | empty'''
+          | NOT %prec UNOT
+		  | empty'''
 
 def p_cuant(p):
     'cuant : LLIST cuan VAR COLON operando COLON operando RLIST'
@@ -181,7 +183,7 @@ def p_operador(p):
                 | TIMES
                 | MOD
                 | POW
-                | DIV '''
+                | DIV'''
 
 def p_expList(p):
     '''expList : expList COMMA operando
@@ -192,7 +194,7 @@ def p_opTby(p):
 
 def p_listVars(p):
     '''listVars : listVars COMMA VAR
-                | VAR '''
+                | VAR'''
 
 def p_select(p):
     'select : IF expBool THEN expresion ELSE expresion'
@@ -208,7 +210,7 @@ def p_comp(p):
 def p_expBool(p):
     '''expBool : expBool opBool condExp
                | condExp
-               | neg LPAREN expBool RPAREN '''
+               | m LPAREN expBool RPAREN '''
 
 def p_opBool(p):
     ''' opBool : AND
@@ -216,14 +218,14 @@ def p_opBool(p):
 
 def p_condExp(p):
     '''condExp : operando comp operando
-               | neg LPAREN condExp RPAREN
-               | neg cuant
-               | neg TRUE
-               | neg FALSE '''
+               | m LPAREN condExp RPAREN
+               | m cuant
+               | m TRUE
+               | m FALSE '''
 
-def p_neg(p):
-    '''neg : NOT %prec UNOT
-           | empty '''
+#def p_neg(p):
+#    '''neg : NOT %prec UNOT
+#           | empty '''
  
 def p_tabla(p):
     'tabla : NEWTABLE LBRACK operando RBRACK WHERE col'
@@ -239,5 +241,11 @@ def p_typ(p):
 def p_val(p):
     '''val : operando
            | INPUT '''
+		   
+def p_error(p):
+    print "Syntax error in input! %s" % p
 
-parser = yacc.yacc()
+parser = yacc.yacc(start='program')
+
+result = parser.parse(data)
+print result
