@@ -100,8 +100,6 @@ while (tok):
     print tok #, tok.type,tok.value,tok.lineno,tok.lexpos
     tok=lexer.token()
 
-# Reglas o Producciones de la Gramatica
-
 precedence = (
     ('left','AND','OR'),
     ('right','UNOT'),
@@ -135,7 +133,11 @@ class Producto(BinOp):
 
 class Division(BinOp):
     def __str__(self):
+<<<<<<< HEAD
         return "Division(" + str(self.op1) + "," + str(self.op2) + ")"
+=======
+        return "UnOp(" + self.opd + "(" + self.op + "))"
+>>>>>>> 4182223c33fb740848c0c0ed5c567ea591064a91
 
 class Mod(BinOp):
     def __str__(self):
@@ -295,14 +297,22 @@ class List(Expresion):
     def __str__(self):
         return "List(" + str(self.list) + ")"
 
-def p_program(p):
-    '''program : EQ expresion
-               | igual declaraciones'''
-    if p[1] == '=':
-        p[0] = Salida(p[2])
-    else:
-        p[0] = NoSalida(p[2])
+#######################################################
+#####   Reglas o Producciones de la Gramatica  #######
+#######################################################
 
+def p_program_dec(p):
+    'program : igual declaraciones'
+    print p[2]
+    for i,v in enumerate(p[2][0]):
+        nombres[v]= (p[2][1][i],p[2][2][i])
+    print nombres
+    p[0] = Salida(p[2])
+       
+def p_program_exp(p):
+    'program : EQ expresion'
+    p[0] = Program(p[2])
+    
 def p_empty(p):
     'empty :'
     p[0] = ''
