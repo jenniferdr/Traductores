@@ -13,9 +13,11 @@ import sys
 reserved= {
     'int': 'INT',
     'string':'TSTRING',
-    'list of': 'LISTOF',
+    'list': 'LIST',
+    'of': 'OF',
     'table':'TABLE',
-    'new table':'NEWTABLE',
+    'new':'NEW',
+    'table':'TABLE',    
     'where':'WHERE',
     'if':'IF',
     'then':'THEN',
@@ -114,36 +116,85 @@ nombres={}
 class Expresion: pass
 
 class BinOp(Expresion):
-    def __init__(self,op1,opd,op2):
+    def __init__(self,op1,op2):
         self.op1 = op1
-        self.opd = opd
         self.op2 = op2
 
+class Suma(BinOp):
     def __str__(self):
-        return "BinOp(" + self.op1 + "," + self.opd + "," + self.op2 + ")"
+        return "Suma(" + str(self.op1) + "," + str(self.op2) + ")"
+
+class Resta(BinOp):
+    def __str__(self):
+        return "Resta(" + str(self.op1) + "," + str(self.op2) + ")"
+
+class Producto(BinOp):
+    def __str__(self):
+        return "Producto(" + str(self.op1) + "," + str(self.op2) + ")"
+
+class Division(BinOp):
+    def __str__(self):
+        return "Division(" + str(self.op1) + "," + str(self.op2) + ")"
+
+class Mod(BinOp):
+    def __str__(self):
+        return "Mod(" + str(self.op1) + "," + str(self.op2) + ")"
+
+class Potencia(BinOp):
+    def __str__(self):
+        return "Potencia(" + str(self.op1) + "," + str(self.op2) + ")"
+
+class Fby(BinOp):
+    def __str__(self):
+        return "Fby(" + str(self.op1) + "," + str(self.op2) + ")"
+
+class And(BinOp):
+    def __str__(self):
+        return "And(" + str(self.op1) + "," + str(self.op2) + ")"
+
+class Or(BinOp):
+    def __str__(self):
+        return "Or(" + str(self.op1) + "," + str(self.op2) + ")"
+
+class MayorQue(BinOp):
+    def __str__(self):
+        return "MayorQue(" + str(self.op1) + "," + str(self.op2) + ")"
+
+class MenorQue(BinOp):
+    def __str__(self):
+        return "MenorQue(" + str(self.op1) + "," + str(self.op2) + ")"
+
+class MayorIgualQue(BinOp):
+    def __str__(self):
+        return "MayorIgualQue(" + str(self.op1) + "," + str(self.op2) + ")"
+
+class MenorIgualQue(BinOp):
+    def __str__(self):
+        return "MenorIgualQue(" + str(self.op1) + "," + str(self.op2) + ")"
+
+class Igual(BinOp):
+    def __str__(self):
+        return "Igual(" + str(self.op1) + "," + str(self.op2) + ")"
+    
+class Distinto(BinOp):
+    def __str__(self):
+        return "Distinto(" + str(self.op1) + "," + str(self.op2) + ")"    
 
 class UnOp(Expresion):
-    def __init__(self,opd,op):
-        self.opd = opd	
+    def __init__(self,op):
         self.op = op
 
+class Neg(UnOp):
     def __str__(self):
-        return "UnOp(" + self.opd + "(" + self.op + "))"
+        return "Neg(" + str(self.op) +")"
 
-class Ctte(Expresion):
-    def __init__(self,valor):
-	    self.valor = valor
-
+class Min(UnOp):
     def __str__(self):
-        return "Ctte(" + self.valor + ")"
+        return "Min(" + str(self.op) +")"    
 
-class TbyOp(Expresion):
-    def __init__(self,exp,vars):
-        self.exp = exp
-        self.vars = vars
-
+class TbyOp(BinOp):
     def __str__(self):
-        return  "TbyOp(" + self.exp + "," + self.vars + ")"
+        return  "TbyOp(" + str(self.op1) + "," + str(self.op2) + ")"
 
 class IfExp(Expresion):
     def __init__(self,cond,exp1,exp2):
@@ -152,7 +203,7 @@ class IfExp(Expresion):
         self.exp2 = exp2
         
     def __str__(self):
-        return  "IfExp(" + self.cond + "," + self.exp1 + "," + self.exp2 + ")"
+        return  "IfExp(" + str(self.cond) + "," + str(self.exp1) + "," + str(self.exp2) + ")"
 
 class AccList(Expresion):
     def __init__(self,var,index):
@@ -160,7 +211,7 @@ class AccList(Expresion):
         self.index = index
 
     def __str__(self):
-        return "AccList(" + self.var + "," + self.index + ")"
+        return "AccList(" + self.var + "," + str(self.index) + ")"
 
 class AccTab(Expresion):
     def __init__(self,var,col,index):
@@ -169,7 +220,7 @@ class AccTab(Expresion):
         self.index = index
 
     def __str__(self):
-        return "AccTab(" + self.var + "," + self.col + "," + self.index + ")"
+        return "AccTab(" + str(self.var) + "," + self.col + "," + str(self.index) + ")"
 
 class Salida:
     def __init__(self,exp):
@@ -184,7 +235,7 @@ class Tabla(Expresion):
         self.col = col
 
     def __str__(self):
-        return "Expresion(" + self.tam + "," + self.col + ")"
+        return "Tabla(" + str(self.tam) + "," + str(self.col) + ")"
 
 class ColTabla:
     def __init__(self,var,type,exp):
@@ -193,7 +244,7 @@ class ColTabla:
         self.exp = exp
 
     def __str__(self):
-        return "ColTabla(" + self.var + "," + self.type + "," + self.exp + ")"
+        return "ColTabla(" +str( self.var) + "," + self.type + "," + str(self.exp) + ")"
 		
 class Range(Expresion):
     def __init__(self,ini,fin):
@@ -201,18 +252,30 @@ class Range(Expresion):
         self.fin = fin
 
     def __str__(self):
-        return "Range(" + self.ini + "," + self.fin + ")"
+        return "Range(" + str(self.ini) + "," + str(self.fin) + ")"
 
 class Len(Expresion):
     def __init__(self,var):
         self.var = var
+
+    def __str__(self):
+        return "Len(" + str(self.var) + ")"
 		
-class Program:
+class NoSalida:
     def __init__(self,exp):
         self.exp = exp
 
     def __str__(self):
-        return "Program(" + str(self.exp) + ")"
+        return "NoSalida(" + str(self.exp) + ")"
+
+class Dec:
+    def __init__(self,vars,typs,exps):
+        self.vars = vars
+        self.typs = typs
+        self.exps = exps
+
+    def __str__(self):
+        return "Dec(" + str(self.vars) + "," + str(self.typs) + "," + str(self.exps) + ")"
 		
 class Cuant(Expresion):
     def __init__(self,op,var,list,exp):
@@ -222,15 +285,14 @@ class Cuant(Expresion):
         self.exp = exp
 
     def __str__(self):
-        return "Cuant(" + self.op + "," + self.var + "," + self.list + "," + self.exp + ")"
-		
-class Cond(Expresion):
-    def __init__(self,eq,cond):
-        self.eq = eq
-        self.cond = cond
+        return "Cuant(" + str(self.op) + "," + str(self.var) + "," + str(self.list) + "," + str(self.exp) + ")"
+
+class List(Expresion):
+    def __init__(self,list):
+        self.list =  list
 
     def __str__(self):
-        return "Cond(" + self.eq + "," + self.cond + ")"
+        return "List(" + str(self.list) + ")"
 
 #######################################################
 #####   Reglas o Producciones de la Gramatica  ########
@@ -260,20 +322,19 @@ def p_declaraciones(p):
     '''declaraciones : VAR COLON type COMMA declaraciones COMMA expresion
                      | VAR COLON type ASIG expresion ''' 
     if len(p) == 6:
-        p[0] = ([p[1]],[p[3]],[p[5]])
+        p[0] = Dec([p[1]],[p[3]],[p[5]])
     else:
-        (p[5][0].append(p[1]),p[5][1].append(p[3]),p[5][2].append(p[7]))
+        p[5].vars.append(p[1])
+        p[5].typs.append(p[3])
+        p[5].exps.append(p[7])
         p[0] = p[5]
-        
 
 def p_type(p):
-    ''' type : INT
-             | TSTRING
-             | LISTOF INT 
-             | LISTOF TSTRING
+    ''' type : typ
+             | LIST OF typ 
              | TABLE '''
-    if len(p) == 3:
-        p[0] = p[1] + ' ' + p[2]
+    if len(p) == 4:
+        p[0] = p[1] + ' ' + p[2] + ' ' + p[3]
     else:
         p[0] = p[1]
 
@@ -289,14 +350,27 @@ def p_operando(p):
                  | opTby
                  | aux '''
     if len(p) == 4:
-        p[0] = BinOp(p[1],p[2],p[3])
+        if p[2] == '+':
+            p[0] = Suma(p[1],p[3])
+        elif p[2] == '-':
+            p[0] = Resta(p[1],p[3])
+        elif p[2]== '*':
+            p[0] = Producto(p[1],p[3])
+        elif p[2] == '/':
+            p[0] = Division(p[1],p[3])
+        elif p[2] == '%':
+            p[0] = Mod(p[1],p[3])
+        elif p[2] == '**':
+            p[0] = Potencia(p[1],p[3])
+        elif p[2] == 'fby' :
+            p[0] = Fby(p[1],p[3])
     else:
-        p[0] = p[1]    
+        p[0] = p[1]
 
 def p_aux(p):
     ''' aux : NUM
             | VAR
-            | m LPAREN operando RPAREN %prec UMINUS
+            | m LPAREN operando RPAREN
             | MINUS aux %prec UMINUS
             | STRING
             | list
@@ -313,35 +387,41 @@ def p_aux(p):
         if p[2] == '[':
             p[0] = AccTab(p[1],p[6],p[3])
     elif len(p) == 5:
-        p[0] = UnOp(p[1],p[3])
-    elif len(p) == 4:
         if p[2] == '(':
-            p[0] = UnOp(p[1],p[3])
-        if p[2] == '[':
+            if p[1] == 'len':
+                p[0] = Len(p[3])
+            else:
+                if p[1] == '-':
+                    p[0] = Min(p[3])
+                else:
+                    p[0] = p[3]
+        elif p[2] == '[':
             p[0] = AccList(p[1],p[3])
+    elif len(p) == 4:
+        p[0] = AccTab(p[1],p[3],0)
     elif len(p) == 3:
-        p[0] = UnOp(p[1],p[2])
+        p[0] = Min(p[2])
     else:
         p[0] = p[1]
-        
+
 def p_m(p):
     ''' m : MINUS %prec UMINUS
           | NOT %prec UNOT
           | empty'''
     p[0] = p[1]
-		
+    
 def p_cuant(p):
     'cuant : LLIST cuan VAR COLON operando COLON operando RLIST'
-    p[0] = Cuan(p[2],p[3],p[5],p[7])
-
+    p[0] = Cuant(p[2],p[3],p[5],p[7])
+    
 def p_list(p):
     '''list : LLIST VAR COLON operando COLON operando RLIST
             | LBRACK expList RBRACK'''
     if len(p) == 4:
         p[0] = p[2]
     else:
-        p[0] = Cuan('',p[2],p[4],p[6])
-
+        p[0] = Cuant('',p[2],p[4],p[6])
+    
 def p_cuan(p):
     '''cuan : operador
             | opBool'''
@@ -358,11 +438,15 @@ def p_operador(p):
 
 def p_expList(p):
     '''expList : expList COMMA operando
-               | operando'''
+               | operando
+               | empty'''
     if len(p) == 2:
-        p[0] = [p[1]]    
+        if p[1] == '':
+            p[0] = []
+        else:
+            p[0] = List([p[1]])
     else:
-        p[1].extend([p[3]])
+        p[1].list.append(p[3])
         p[0] = p[1]
 
 def p_opTby(p):
@@ -373,13 +457,14 @@ def p_listVars(p):
     '''listVars : listVars COMMA VAR
                 | VAR'''
     if len(p) == 4:
-        p[0] = p[1].append(p[3])
+        p[1].append(p[3])
+        p[0] = p[1]
     else:
         p[0] = [p[1]]
 
 def p_select(p):
     'select : IF expBool THEN expresion ELSE expresion'
-    p[0] = IfExp(p[2],p[4],p[6])    
+    p[0] = IfExp(p[2],p[4],p[6])
 
 def p_comp(p):
     '''comp : GT
@@ -388,23 +473,29 @@ def p_comp(p):
             | GTE
             | EQ
             | NOTEQ '''
-    p[0] = p[1]    
+    p[0] = p[1]
 
 def p_expBool(p):
     '''expBool : expBool opBool condExp
                | condExp
                | m LPAREN expBool RPAREN '''
     if len(p) == 5:
-        p[0] = UnOp(p[1],p[3])
+        if p[1] == '!':
+            p[0] = Neg(p[3])
+        else:
+            p[0] = p[3]
     elif len(p) == 4:
-        p[0] = BinOp(p[1],p[2],p[3])
+        if p[2] == '&':
+            p[0] = And(p[1],p[3])
+        elif p[2] == '|':
+            p[0] = Or(p[1],p[3])
     else:
-        p[0] = p[1]    
+        p[0] = p[1]
 
 def p_opBool(p):
     ''' opBool : AND
                | OR '''
-    p[0] = p[1]               
+    p[0] = p[1]
 
 def p_condExp(p):
     '''condExp : operando comp operando
@@ -413,38 +504,48 @@ def p_condExp(p):
                | m TRUE
                | m FALSE '''
     if len(p) == 5:
-        p[0] = Cond(p[1],p[3])
+        if p[1] == '!':
+            p[0] = Neg(p[3])
+        else:
+            p[0] = p[3]        
     elif len(p) == 4:
-        p[0] = BinOp(p[1],p[2],p[3])
+        if p[2] == '=':
+            p[0] = Igual(p[1],p[3])
+        elif p[2] == '!=':
+            p[0] = Distinto(p[1],p[3])
+        elif p[2] == '>':
+            p[0] = MayorQue(p[1],p[3])
+        elif p[2] == '<':
+            p[0] = MenorQue(p[1],p[3])
+        elif p[2] == '>=':
+            p[0] = MayorIgualQue(p[1],p[3])
+        elif p[2] == '<=':
+            p[0] = MenorIgualQue(p[1],p[3])
     else:
-        p[0] = UnOp(p[1],p[2])
+        if p[1] == '!':
+            p[0] = Neg(p[2])
+        else:
+            p[0] = p[2]
 
-#def p_neg(p):
-#    '''neg : NOT %prec UNOT
-#           | empty '''
- 
 def p_tabla(p):
-    'tabla : NEWTABLE LBRACK operando RBRACK WHERE col'
-    p[0] = Tabla(p[3],p[6])
+    'tabla : NEW TABLE LBRACK operando RBRACK WHERE col'
+    p[0] = Tabla(p[4],p[7])
 
 def p_col(p):
-    ''' col : VAR COLON typ ASIG val
-            | col SEMICOLON VAR COLON typ ASIG val'''
+    ''' col : VAR COLON typ ASIG expresion
+            | col SEMICOLON VAR COLON typ ASIG expresion'''
     if len(p) == 8:
-        p[0] = p[1].append(ColTabla(p[3],p[5],p[7]))
+        p[1].append(ColTabla(p[3],p[5],p[7]))
+        p[0] = p[1]
     else:
         p[0] = [ColTabla(p[1],p[3],p[5])]
 
 def p_typ(p):
     '''typ : INT
            | TSTRING'''
-    p[0] = p[1]           
+    p[0] = p[1]
 
-def p_val(p):
-    '''val : operando
-           | INPUT '''
-    p[0] = p[1]           
-           
+
 def p_error(p):
     print "Syntax error in input! %r" % p.value
 
