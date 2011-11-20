@@ -115,12 +115,13 @@ nombres={}
 class Expresion: pass
 
 class BinOp(Expresion):
-    def __init__(self,op1,op2):
+    def __init__(self,op1,opd,op2):
         self.op1 = op1
+        self.opd = opd
         self.op2 = op2
 
     def __str__(self):
-        return "BinOp(" + self.op1 + "," + self.op2 + ")"
+        return "BinOp(" + self.op1 + "," + self.opd + "," + self.op2 + ")"
 
 class UnOp(Expresion):
     def __init__(self,opd,op):
@@ -250,7 +251,8 @@ def p_declaraciones(p):
     if len(p) == 6:
         p[0] = ([p[1]],[p[3]],[p[5]])
     else:
-        p[0] = (p[5][0].append(p[1]),p[5][1].append(p[3]),p[5][2].append(p[7]))
+        (p[5][0].append(p[1]),p[5][1].append(p[3]),p[5][2].append(p[7]))
+        p[0] = p[5]	
 
 def p_type(p):
     ''' type : INT
