@@ -25,4 +25,61 @@ class IfExp(Expresion):
         self.exp1 = exp1
         self.exp2 = exp2
 
-class		
+class Dec:
+    def __init__(self,var,type):
+        self.var = var
+        self.type = type
+
+class Asig:
+    def __init__(self,dec,val):
+        self.dec.append(dec)
+		self.val.append(val)
+
+class AccList(Expresion):
+    def __init__(self,var,index):
+        self.var = var
+        self.index = index
+
+class AccTab(Expresion):
+    def __init___(self,var,col,index):
+        self.var = var
+        self.col = col
+        self.index = index
+
+class Salida:
+    def __init___(self,exp):
+        self.exp = exp
+		
+class Tabla(Expresion):
+    def __init__(self,name,tam,col):
+        self.name = name
+        self.tam = tam
+        self.col = col
+
+class ColTabla:
+    def __init__(self,var,type,exp):
+        self.cols.append((var,type,exp))
+		
+class Lista(Expresion):
+    def __init__(self,elem):
+        self.list.append(elem)
+		
+class Range(Expresion):
+    def __init__(self,ini,fin):
+        self.ini = ini
+        self.fin = fin
+
+class Len(Expresion):
+    def __init__(self,var):
+        self.var = var
+		
+class Program:
+    def __init__(self,exp):
+        self.exp = exp
+		
+class Cuant(Expresion):
+    def __init__(self,op,var,list,exp):
+        self.op = op
+        self.var = var
+        self.list = list
+        self.exp = exp		

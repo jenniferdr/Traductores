@@ -8,6 +8,7 @@
 import ply.lex as lex
 import ply.yacc as yacc
 import sys
+import clases
 
 reserved= {
     'int': 'INT',
@@ -94,7 +95,7 @@ lexer.input(data)
 
 tok=lexer.token()
 while (tok):
-    print tok #, tok.type,tok.value,tok.lineno,tok.lexpos
+    #print tok #, tok.type,tok.value,tok.lineno,tok.lexpos
     tok=lexer.token()
 
 # Reglas o Producciones de la Gramatica
@@ -113,20 +114,29 @@ nombres={}
 
 def p_program(p):
     'program : igual declaraciones'
-    '        | igual expresion'
-    print(p)
-
+    '        | EQ expresion'
+    if p[1] == '=':
+        p[0] = Salida(p[2])
+    else:
+        p[0] = Program(p[2])
+	
 def p_empty(p):
-    'empty : '
+    'empty :'
+    p[0] = ''
     pass
-
+	
 def p_igual_salida(p):
     '''igual : EQ
              | empty'''
-
+    p[0] = p[1]
+	
 def p_declaraciones(p):
     '''declaraciones : VAR COLON type COMMA declaraciones COMMA expresion
                      | VAR COLON type ASIG expresion ''' 
+    if len(p) == 6:
+	    p[0] = [Dec(p[3],p[5])]
+    else:
+        p[0] = p[5].extend([Dec(p[3],p[7])])
 
 def p_type(p):
     ''' type : INT
@@ -134,17 +144,26 @@ def p_type(p):
              | LISTOF INT 
              | LISTOF TSTRING
              | TABLE '''
+    if len(p) == 3:
+	    p[0] = p[1] + ' ' + p[2]
+    else:
+	    p[0] = p[1]
 
 def p_expresion(p):
     ''' expresion : operando
                   | tabla
-                  | INPUT '''
+                  | INPUT'''
+    p[0] = p[1]
 
 def p_operando(p):
     ''' operando : operando operador aux
                  | operando FBY aux
                  | opTby
                  | aux '''
+    if len(p) == 4:
+        p[0] = BinOp(p[1],p[2],p[3])
+    else:
+        p[0] = p[1]	
 
 def p_aux(p):
     ''' aux : NUM
@@ -160,22 +179,45 @@ def p_aux(p):
             | VAR DOT VAR 
             | LEN LPAREN operando RPAREN 
             | RANGE LPAREN operando COMMA operando RPAREN '''
-
+    if len(p) == 7:
+	    if p[2] = '(':
+            p[0] = Range(p[3],p[5])
+	    if p[2] = '[':
+            p[0] = AccTab(p[1],p[6],p[3])
+    elif len(p) == 5:
+        p[0] = UnOp(p[1],p[3])
+    elif len(p) == 4:
+	    if p[2] = '(':
+            p[0] = UnOp(p[1],p[3])
+	    if p[2] = '[':
+            p[0] = AccList(p[1],p[3])
+    elif len(p) == 3:
+        p[0] = UnOp(p[1],p[2])
+    else:
+	    p[0] = Ctte(p[1])
+		
 def p_m(p):
     ''' m : MINUS %prec UMINUS
           | NOT %prec UNOT
 		  | empty'''
+        p[0] = p[1]
 
 def p_cuant(p):
     'cuant : LLIST cuan VAR COLON operando COLON operando RLIST'
+    p[0] = Cuan(p[2],p[3],p[5],p[7])
 
 def p_list(p):
     '''list : LLIST VAR COLON operando COLON operando RLIST
             | LBRACK expList RBRACK'''
+    if len(p) == 4:
+        p[0] = p[1] + p[2] + p[3]
+    else:
+        p[0] = p[1] + p[2] + p[3] + p[4] + p[5] + p[6] + p[7]
 
 def p_cuan(p):
     '''cuan : operador
             | opBool'''
+    p[0] = p[1]
 
 def p_operador(p):
     '''operador : PLUS
@@ -184,20 +226,31 @@ def p_operador(p):
                 | MOD
                 | POW
                 | DIV'''
+    p[0] = p[1]
 
 def p_expList(p):
     '''expList : expList COMMA operando
                | operando'''
+    if len(p) == 2:
+        p[0] = [p[1]]	
+    else:
+        p[0] = p[1].extend([p[3]])
 
 def p_opTby(p):
     'opTby : operando TBY LBRACK listVars RBRACK'
+    p[0] = p[1] + p[2] + p[3] + p[4] + p[5]
 
 def p_listVars(p):
     '''listVars : listVars COMMA VAR
                 | VAR'''
+    if len(p) == 4:
+        p[0] = p[1].append(p[3])
+    else:
+        p[0] = [p[1]]
 
 def p_select(p):
     'select : IF expBool THEN expresion ELSE expresion'
+    p[0] = IfExp(p[2],p[4],p[6])	
 
 def p_comp(p):
     '''comp : GT
@@ -206,15 +259,23 @@ def p_comp(p):
             | GTE
             | EQ
             | NOTEQ '''
+    p[0] = p[1]	
 
 def p_expBool(p):
     '''expBool : expBool opBool condExp
                | condExp
                | m LPAREN expBool RPAREN '''
+    if len(p) == 5:
+        p[0] = p[1] + p[2] + p[3] + p[4]
+    elif len(p) == 4:
+        p[0] = p[1] + p[2] + p[3]
+    else:
+        p[0] = p[1]	
 
 def p_opBool(p):
     ''' opBool : AND
                | OR '''
+    p[0] = p[1]			   
 
 def p_condExp(p):
     '''condExp : operando comp operando
@@ -222,6 +283,12 @@ def p_condExp(p):
                | m cuant
                | m TRUE
                | m FALSE '''
+    if len(p) == 5:
+        p[0] = p[1] + p[2] + p[3] + p[4]
+    elif len(p) == 4:
+        p[0] = p[1] + p[2] + p[3]
+    else:
+        p[0] = UnOp(p[1],p[2])
 
 #def p_neg(p):
 #    '''neg : NOT %prec UNOT
@@ -229,23 +296,29 @@ def p_condExp(p):
  
 def p_tabla(p):
     'tabla : NEWTABLE LBRACK operando RBRACK WHERE col'
+    p[0] = p[1] + p[2] + p[3] + p[4] + p[5] + p[6]
 
 def p_col(p):
     ''' col : VAR COLON typ ASIG val
             | col SEMICOLON VAR COLON typ ASIG val'''
+    if len(p) == 8:
+        p[0] = p[1] + p[2] + p[3] + p[4] + p[5] + p[6] + p[7]
+    else:
+        p[0] = p[1] + p[2] + p[3] + p[4] + p[5]	
 
 def p_typ(p):
     '''typ : INT
            | TSTRING'''
+    p[0] = p[1]		   
 
 def p_val(p):
     '''val : operando
            | INPUT '''
+    p[0] = p[1]		   
 		   
 def p_error(p):
-    print "Syntax error in input! %s" % p
+    print "Syntax error in input! %r" % p.value
 
 parser = yacc.yacc(start='program')
 
-result = parser.parse(data)
-print result
+print parser.parse(data)
