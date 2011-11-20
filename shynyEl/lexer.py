@@ -155,12 +155,6 @@ class IfExp(Expresion):
     def __str__(self):
         return  "IfExp(" + self.cond + "," + self.exp1 + "," + self.exp2 + ")"
 
-class Dec:
-    def __init__(self,var,type,exp):
-        self.var = var
-        self.type = type
-        self.exp = exp
-
 class AccList(Expresion):
     def __init__(self,var,index):
         self.var = var
@@ -179,11 +173,11 @@ class AccTab(Expresion):
         return "AccTab(" + self.var + "," + self.col + "," + self.index + ")"
 
 class Salida:
-    def __init___(self,exp):
+    def __init__(self,exp):
         self.exp = exp
 
     def __str__(self):
-        return "Salida(" + self.exp + ")"
+        return "Salida(" + str(self.exp) + ")"
 		
 class Tabla(Expresion):
     def __init__(self,name,tam,col):
@@ -220,7 +214,7 @@ class Program:
         self.exp = exp
 
     def __str__(self):
-        return "Program(" + self.exp + ")"
+        return "Program(" + str(self.exp) + ")"
 		
 class Cuant(Expresion):
     def __init__(self,op,var,list,exp):
@@ -233,7 +227,7 @@ class Cuant(Expresion):
         return "Cuant(" + self.op + "," + self.var + "," + self.list + "," + self.exp + ")"
 
 def p_program(p):
-    '''program : igual declaraciones'
+    '''program : igual declaraciones
                | EQ expresion'''
     if p[1] == '=':
         p[0] = Salida(p[2])
@@ -254,9 +248,9 @@ def p_declaraciones(p):
     '''declaraciones : VAR COLON type COMMA declaraciones COMMA expresion
                      | VAR COLON type ASIG expresion ''' 
     if len(p) == 6:
-        p[0] = [Dec(p[1],p[3],p[5])]
+        p[0] = ([p[1]],[p[3]],[p[5]])
     else:
-        p[0] = p[5].extend([Dec(p[1],p[3],p[7])])
+        p[0] = (p[5][0].append(p[1]),p[5][1].append(p[3]),p[5][2].append(p[7]))
 
 def p_type(p):
     ''' type : INT
@@ -439,6 +433,6 @@ def p_val(p):
 def p_error(p):
     print "Syntax error in input! %r" % p.value
 
-parser = yacc.yacc(start='s')
+parser = yacc.yacc(start='program')
 result = parser.parse(data)
 print result
