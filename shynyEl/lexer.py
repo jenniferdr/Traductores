@@ -111,8 +111,6 @@ precedence = (
     )
 
 nombres={}
-def p_s(p):
-    's : program'
 
 class Expresion: pass
 
@@ -121,37 +119,49 @@ class BinOp(Expresion):
         self.op1 = op1
         self.op2 = op2
 
+    def __str__(self):
+        return "BinOp(" + self.op1 + "," + self.op2 + ")"
+
 class UnOp(Expresion):
     def __init__(self,opd,op):
         self.opd = opd	
         self.op = op
+        print(self.opd,self.op)
+
+    def __str__(self):
+        return "UnOp(" + self.opd + "," + self.op + ")"
 
 class Ctte(Expresion):
     def __init__(self,valor):
 	    self.valor = valor
+
+    def __str__(self):
+        return "Ctte(" + self.valor + ")"
 
 class TbyOp(Expresion):
     def __init__(self,exp,vars):
         self.exp = exp
         self.vars = vars
 
+    def __str__(self):
+        return  "TbyOp(" + self.exp + "," + self.vars + ")"
+
 class IfExp(Expresion):
     def __init__(self,cond,exp1,exp2):
         self.cond = cond
         self.exp1 = exp1
         self.exp2 = exp2
-
-class Dec:
-    def __init__(self,var,type,exp):
-        self.var = var
-        self.type = type
-        self.exp = exp
-        print(self.var,self.type,self.exp)
+        
+    def __str__(self):
+        return  "IfExp(" + self.cond + "," + self.exp1 + "," + self.exp2 + ")"
 
 class AccList(Expresion):
     def __init__(self,var,index):
         self.var = var
         self.index = index
+
+    def __str__(self):
+        return "AccList(" + self.var + "," + self.index + ")"
 
 class AccTab(Expresion):
     def __init___(self,var,col,index):
@@ -159,9 +169,15 @@ class AccTab(Expresion):
         self.col = col
         self.index = index
 
+    def __str__(self):
+        return "AccTab(" + self.var + "," + self.col + "," + self.index + ")"
+
 class Salida:
-    def __init___(self,exp):
+    def __init__(self,exp):
         self.exp = exp
+
+    def __str__(self):
+        return "Salida(" + str(self.exp) + ")"
 		
 class Tabla(Expresion):
     def __init__(self,name,tam,col):
@@ -169,16 +185,25 @@ class Tabla(Expresion):
         self.tam = tam
         self.col = col
 
+    def __str__(self):
+        return "Expresion(" + self.name + "," + self.tam + "," + self.col + ")"
+
 class ColTabla:
     def __init__(self,var,type,exp):
         self.var = var
         self.type = type
         self.exp = exp
+
+    def __str__(self):
+        return "ColTabla(" + self.var + "," + self.type + "," + self.exp + ")"
 		
 class Range(Expresion):
     def __init__(self,ini,fin):
         self.ini = ini
         self.fin = fin
+
+    def __str__(self):
+        return "Range(" + self.ini + "," + self.fin + ")"
 
 class Len(Expresion):
     def __init__(self,var):
@@ -187,13 +212,19 @@ class Len(Expresion):
 class Program:
     def __init__(self,exp):
         self.exp = exp
+
+    def __str__(self):
+        return "Program(" + str(self.exp) + ")"
 		
 class Cuant(Expresion):
     def __init__(self,op,var,list,exp):
         self.op = op
         self.var = var
         self.list = list
-        self.exp = exp		
+        self.exp = exp
+
+    def __str__(self):
+        return "Cuant(" + self.op + "," + self.var + "," + self.list + "," + self.exp + ")"
 
 def p_program(p):
     '''program : igual declaraciones
@@ -217,9 +248,9 @@ def p_declaraciones(p):
     '''declaraciones : VAR COLON type COMMA declaraciones COMMA expresion
                      | VAR COLON type ASIG expresion ''' 
     if len(p) == 6:
-        p[0] = [Dec(p[1],p[3],p[5])]
+        p[0] = ([p[1]],[p[3]],[p[5]])
     else:
-        p[0] = p[5].extend([Dec(p[1],p[3],p[7])])
+        p[0] = (p[5][0].append(p[1]),p[5][1].append(p[3]),p[5][2].append(p[7]))
 
 def p_type(p):
     ''' type : INT
@@ -402,6 +433,6 @@ def p_val(p):
 def p_error(p):
     print "Syntax error in input! %r" % p.value
 
-parser = yacc.yacc(start='s')
+parser = yacc.yacc(start='program')
 result = parser.parse(data)
 print result
