@@ -26,14 +26,10 @@ class IfExp(Expresion):
         self.exp2 = exp2
 
 class Dec:
-    def __init__(self,var,type):
+    def __init__(self,var,type,exp):
         self.var = var
         self.type = type
-
-class Asig:
-    def __init__(self,dec,val):
-        self.dec.append(dec)
-		self.val.append(val)
+        self.exp = exp
 
 class AccList(Expresion):
     def __init__(self,var,index):
@@ -58,11 +54,9 @@ class Tabla(Expresion):
 
 class ColTabla:
     def __init__(self,var,type,exp):
-        self.cols.append((var,type,exp))
-		
-class Lista(Expresion):
-    def __init__(self,elem):
-        self.list.append(elem)
+        self.var = var
+		self.type = type
+		self.exp = exp
 		
 class Range(Expresion):
     def __init__(self,ini,fin):

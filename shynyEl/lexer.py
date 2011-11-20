@@ -89,22 +89,22 @@ def t_error(t):
 
 lexer= lex.lex()
 
-data= sys.argv[1]
+#data= sys.argv[1]
 
-lexer.input(data)
+#lexer.input(data)
 
-tok=lexer.token()
-while (tok):
+#tok=lexer.token()
+#while (tok):
     #print tok #, tok.type,tok.value,tok.lineno,tok.lexpos
-    tok=lexer.token()
+    #tok=lexer.token()
 
 # Reglas o Producciones de la Gramatica
 
 precedence = (
     ('left','AND','OR'),
-	('right','UNOT'),
-	('nonassoc','LT','LTE','GT','GTE'),
-	('nonassoc','EQ','NOTEQ'),
+    ('right','UNOT'),
+    ('nonassoc','LT','LTE','GT','GTE'),
+    ('nonassoc','EQ','NOTEQ'),
     ('left','PLUS','MINUS'),
     ('left','TIMES','DIV','MOD'),
     ('right','UMINUS'),
@@ -119,24 +119,24 @@ def p_program(p):
         p[0] = Salida(p[2])
     else:
         p[0] = Program(p[2])
-	
+    
 def p_empty(p):
     'empty :'
     p[0] = ''
     pass
-	
+    
 def p_igual_salida(p):
     '''igual : EQ
              | empty'''
     p[0] = p[1]
-	
+    
 def p_declaraciones(p):
     '''declaraciones : VAR COLON type COMMA declaraciones COMMA expresion
                      | VAR COLON type ASIG expresion ''' 
     if len(p) == 6:
-	    p[0] = [Dec(p[3],p[5])]
+        p[0] = [Dec(p[1],p[3],p[5])]
     else:
-        p[0] = p[5].extend([Dec(p[3],p[7])])
+        p[0] = p[5].extend([Dec(p[1],p[3],p[7])])
 
 def p_type(p):
     ''' type : INT
@@ -145,9 +145,9 @@ def p_type(p):
              | LISTOF TSTRING
              | TABLE '''
     if len(p) == 3:
-	    p[0] = p[1] + ' ' + p[2]
+        p[0] = p[1] + ' ' + p[2]
     else:
-	    p[0] = p[1]
+        p[0] = p[1]
 
 def p_expresion(p):
     ''' expresion : operando
@@ -163,7 +163,7 @@ def p_operando(p):
     if len(p) == 4:
         p[0] = BinOp(p[1],p[2],p[3])
     else:
-        p[0] = p[1]	
+        p[0] = p[1]    
 
 def p_aux(p):
     ''' aux : NUM
@@ -180,28 +180,28 @@ def p_aux(p):
             | LEN LPAREN operando RPAREN 
             | RANGE LPAREN operando COMMA operando RPAREN '''
     if len(p) == 7:
-	    if p[2] = '(':
+        if p[2] == '(':
             p[0] = Range(p[3],p[5])
-	    if p[2] = '[':
+        if p[2] == '[':
             p[0] = AccTab(p[1],p[6],p[3])
     elif len(p) == 5:
         p[0] = UnOp(p[1],p[3])
     elif len(p) == 4:
-	    if p[2] = '(':
+        if p[2] == '(':
             p[0] = UnOp(p[1],p[3])
-	    if p[2] = '[':
+        if p[2] == '[':
             p[0] = AccList(p[1],p[3])
     elif len(p) == 3:
         p[0] = UnOp(p[1],p[2])
     else:
-	    p[0] = Ctte(p[1])
-		
+        p[0] = Ctte(p[1])
+        
 def p_m(p):
     ''' m : MINUS %prec UMINUS
           | NOT %prec UNOT
-		  | empty'''
+          | empty'''
         p[0] = p[1]
-
+		
 def p_cuant(p):
     'cuant : LLIST cuan VAR COLON operando COLON operando RLIST'
     p[0] = Cuan(p[2],p[3],p[5],p[7])
@@ -210,9 +210,9 @@ def p_list(p):
     '''list : LLIST VAR COLON operando COLON operando RLIST
             | LBRACK expList RBRACK'''
     if len(p) == 4:
-        p[0] = p[1] + p[2] + p[3]
+        p[0] = p[2]
     else:
-        p[0] = p[1] + p[2] + p[3] + p[4] + p[5] + p[6] + p[7]
+        p[0] = Cuan('',p[2],p[4],p[6])
 
 def p_cuan(p):
     '''cuan : operador
@@ -232,13 +232,13 @@ def p_expList(p):
     '''expList : expList COMMA operando
                | operando'''
     if len(p) == 2:
-        p[0] = [p[1]]	
+        p[0] = [p[1]]    
     else:
         p[0] = p[1].extend([p[3]])
 
 def p_opTby(p):
     'opTby : operando TBY LBRACK listVars RBRACK'
-    p[0] = p[1] + p[2] + p[3] + p[4] + p[5]
+    p[0] = TbyOp(p[1],p[4])
 
 def p_listVars(p):
     '''listVars : listVars COMMA VAR
@@ -250,7 +250,7 @@ def p_listVars(p):
 
 def p_select(p):
     'select : IF expBool THEN expresion ELSE expresion'
-    p[0] = IfExp(p[2],p[4],p[6])	
+    p[0] = IfExp(p[2],p[4],p[6])    
 
 def p_comp(p):
     '''comp : GT
@@ -259,7 +259,7 @@ def p_comp(p):
             | GTE
             | EQ
             | NOTEQ '''
-    p[0] = p[1]	
+    p[0] = p[1]    
 
 def p_expBool(p):
     '''expBool : expBool opBool condExp
@@ -270,12 +270,12 @@ def p_expBool(p):
     elif len(p) == 4:
         p[0] = p[1] + p[2] + p[3]
     else:
-        p[0] = p[1]	
+        p[0] = p[1]    
 
 def p_opBool(p):
     ''' opBool : AND
                | OR '''
-    p[0] = p[1]			   
+    p[0] = p[1]               
 
 def p_condExp(p):
     '''condExp : operando comp operando
@@ -296,29 +296,29 @@ def p_condExp(p):
  
 def p_tabla(p):
     'tabla : NEWTABLE LBRACK operando RBRACK WHERE col'
-    p[0] = p[1] + p[2] + p[3] + p[4] + p[5] + p[6]
+    p[0] = Tabla(p[1],p[3],p[6])
 
 def p_col(p):
     ''' col : VAR COLON typ ASIG val
             | col SEMICOLON VAR COLON typ ASIG val'''
     if len(p) == 8:
-        p[0] = p[1] + p[2] + p[3] + p[4] + p[5] + p[6] + p[7]
+        p[0] = p[1].append(ColTabla(p[3],p[5],p[7]))
     else:
-        p[0] = p[1] + p[2] + p[3] + p[4] + p[5]	
+        p[0] = [ColTabla(p[1],p[3],p[5])]
 
 def p_typ(p):
     '''typ : INT
            | TSTRING'''
-    p[0] = p[1]		   
+    p[0] = p[1]           
 
 def p_val(p):
     '''val : operando
            | INPUT '''
-    p[0] = p[1]		   
-		   
+    p[0] = p[1]           
+           
 def p_error(p):
     print "Syntax error in input! %r" % p.value
 
 parser = yacc.yacc(start='program')
 
-print parser.parse(data)
+#print parser.parse(data)
