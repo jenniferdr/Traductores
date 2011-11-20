@@ -98,8 +98,6 @@ data= sys.argv[1]
 #    print tok #, tok.type,tok.value,tok.lineno,tok.lexpos
 #    tok=lexer.token()
 
-# Reglas o Producciones de la Gramatica
-
 precedence = (
     ('left','AND','OR'),
     ('right','UNOT'),
@@ -129,7 +127,7 @@ class UnOp(Expresion):
         self.op = op
 
     def __str__(self):
-        return "UnOp(" + self.opd + "," + self.op + ")"
+        return "UnOp(" + self.opd + "(" + self.op + "))"
 
 class Ctte(Expresion):
     def __init__(self,valor):
@@ -233,13 +231,21 @@ class Cond(Expresion):
     def __str__(self):
         return "Cond(" + self.eq + "," + self.cond + ")"
 
-def p_program(p):
-    '''program : igual declaraciones
-               | EQ expresion'''
-    if p[1] == '=':
-        p[0] = Salida(p[2])
-    else:
-        p[0] = Program(p[2])
+#######################################################
+#####   Reglas o Producciones de la Gramatica  #######
+#######################################################
+
+def p_program_dec(p):
+    'program : igual declaraciones'
+    print p[2]
+    for i,v in enumerate(p[2][0]):
+        nombres[v]= (p[2][1][i],p[2][2][i])
+    print nombres
+    p[0] = Salida(p[2])
+       
+def p_program_exp(p):
+    'program : EQ expresion'
+    p[0] = Program(p[2])
     
 def p_empty(p):
     'empty :'
@@ -259,7 +265,7 @@ def p_declaraciones(p):
     else:
         (p[5][0].append(p[1]),p[5][1].append(p[3]),p[5][2].append(p[7]))
         p[0] = p[5]
-        print p[0]
+        
 
 def p_type(p):
     ''' type : INT
