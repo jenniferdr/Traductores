@@ -325,13 +325,9 @@ def p_declaraciones(p):
     if len(p) == 6:
         p[0] = [Dec(p[1],p[3],p[5])]
     else:
-        p[5][0].append(p[1])
-        p[5][1].append(p[3])
-        p[5][2].append(p[7])
-        for i,var in enumerate(p[5][0]):
-            p[0].append(Dec(var,p[5][1][i],p[5][2][i]))       
+        p[5].append(Dec(p[1],p[3],p[7]))
+        p[0] = p[5]
 
-        
 def p_type(p):
     ''' type : typ
              | LIST OF typ 
