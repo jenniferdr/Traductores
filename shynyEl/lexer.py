@@ -80,7 +80,8 @@ def t_NUM(t):
     return t
 
 def t_STRING(t):
-    r'"([^"]|\")*"'
+    r'"([^"\\]|\\"|\\\\|\n|\t|\r|\f|\v)*"'
+    t.value= (t.value)[1:-1]
     return t
 
 def t_error(t):
@@ -90,13 +91,13 @@ def t_error(t):
 lexer= lex.lex()
 
 data= sys.argv[1]
+#data= ''' =A:int,B_:string:=b,"hola \" chao" ''' 
+lexer.input(data)
 
-#lexer.input(data)
-
-#tok=lexer.token()
-#while (tok):
-#    print tok #, tok.type,tok.value,tok.lineno,tok.lexpos
-#    tok=lexer.token()
+tok=lexer.token()
+while (tok):
+    print tok #, tok.type,tok.value,tok.lineno,tok.lexpos
+    tok=lexer.token()
 
 precedence = (
     ('left','AND','OR'),
@@ -232,15 +233,13 @@ class Cond(Expresion):
         return "Cond(" + self.eq + "," + self.cond + ")"
 
 #######################################################
-#####   Reglas o Producciones de la Gramatica  #######
+#####   Reglas o Producciones de la Gramatica  ########
 #######################################################
 
 def p_program_dec(p):
     'program : igual declaraciones'
-    print p[2]
     for i,v in enumerate(p[2][0]):
-        nombres[v]= (p[2][1][i],p[2][2][i])
-    print nombres
+        nombres[v]= (p[2][1][i],p[2][2][i]) 
     p[0] = Salida(p[2])
        
 def p_program_exp(p):
