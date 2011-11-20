@@ -200,7 +200,7 @@ def p_m(p):
     ''' m : MINUS %prec UMINUS
           | NOT %prec UNOT
           | empty'''
-        p[0] = p[1]
+    p[0] = p[1]
 		
 def p_cuant(p):
     'cuant : LLIST cuan VAR COLON operando COLON operando RLIST'

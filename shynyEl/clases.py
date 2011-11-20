@@ -11,7 +11,7 @@ class UnOp(Expresion):
         self.op = op
 
 class Ctte(Expresion):
-    def __init__(self,valor)
+    def __init__(self,valor):
 	    self.valor = valor
 
 class TbyOp(Expresion):
@@ -55,8 +55,8 @@ class Tabla(Expresion):
 class ColTabla:
     def __init__(self,var,type,exp):
         self.var = var
-		self.type = type
-		self.exp = exp
+        self.type = type
+        self.exp = exp
 		
 class Range(Expresion):
     def __init__(self,ini,fin):
