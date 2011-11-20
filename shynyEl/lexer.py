@@ -82,7 +82,8 @@ def t_NUM(t):
     return t
 
 def t_STRING(t):
-    r'"([^"]|\")*"'
+    r'"([^"\\]|\\"|\\\\|\n|\t|\r|\f|\v)*"'
+    t.value= (t.value)[1:-1]
     return t
 
 def t_error(t):
@@ -92,7 +93,7 @@ def t_error(t):
 lexer= lex.lex()
 
 data= sys.argv[1]
-
+#data= ''' =A:int,B_:string:=b,"hola \" chao" ''' 
 lexer.input(data)
 
 tok=lexer.token()
@@ -294,7 +295,7 @@ class List(Expresion):
         return "List(" + str(self.list) + ")"
 
 #######################################################
-#####   Reglas o Producciones de la Gramatica  #######
+#####   Reglas o Producciones de la Gramatica  ########
 #######################################################
 
 def p_program_dec(p):
