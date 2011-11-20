@@ -299,15 +299,17 @@ class List(Expresion):
 
 def p_program_dec(p):
     'program : igual declaraciones'
-    print p[2]
-    for i,v in enumerate(p[2][0]):
-        nombres[v]= (p[2][1][i],p[2][2][i])
+    for i,v in enumerate(p[2].vars):
+        nombres[v]= (p[2].typs[i],p[2].exps[i])
     print nombres
-    p[0] = Salida(p[2])
+    if p[1] == '=':
+        p[0] = Salida(p[2])
+    else:
+        p[0] = NoSalida(p[2])
        
 def p_program_exp(p):
     'program : EQ expresion'
-    p[0] = Program(p[2])
+    p[0] = Salida(p[2])
     
 def p_empty(p):
     'empty :'
