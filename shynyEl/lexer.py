@@ -133,11 +133,7 @@ class Producto(BinOp):
 
 class Division(BinOp):
     def __str__(self):
-<<<<<<< HEAD
         return "Division(" + str(self.op1) + "," + str(self.op2) + ")"
-=======
-        return "UnOp(" + self.opd + "(" + self.op + "))"
->>>>>>> 4182223c33fb740848c0c0ed5c567ea591064a91
 
 class Mod(BinOp):
     def __str__(self):
