@@ -79,7 +79,7 @@ def t_NUM(t):
     return t
 
 def t_STRING(t):
-    r'"([^"]|\")*"'
+    r'"(\\(?="))*"'
     return t
 
 def t_error(t):
@@ -88,7 +88,7 @@ def t_error(t):
 
 lexer= lex.lex()
 
-data= sys.argv[1]
+data= '= 45'
 
 lexer.input(data)
 
@@ -110,11 +110,14 @@ precedence = (
     )
 
 nombres={}
+def p_s(p):
+    's : program'
 
 def p_program(p):
-    'program : igual declaraciones'
-    '        | igual expresion'
-    print(p)
+    '''program : EQ expresion
+             | igual declaraciones'''
+    print "program igual dec"
+     
 
 def p_empty(p):
     'empty : '
@@ -123,10 +126,12 @@ def p_empty(p):
 def p_igual_salida(p):
     '''igual : EQ
              | empty'''
+    print "="
 
 def p_declaraciones(p):
     '''declaraciones : VAR COLON type COMMA declaraciones COMMA expresion
-                     | VAR COLON type ASIG expresion ''' 
+                     | VAR COLON type ASIG expresion '''
+    print "declaracion"
 
 def p_type(p):
     ''' type : INT
@@ -134,17 +139,20 @@ def p_type(p):
              | LISTOF INT 
              | LISTOF TSTRING
              | TABLE '''
+    print "tipo"
 
 def p_expresion(p):
     ''' expresion : operando
                   | tabla
                   | INPUT '''
+    print "expresion"
 
 def p_operando(p):
     ''' operando : operando operador aux
                  | operando FBY aux
                  | opTby
                  | aux '''
+    print "operando"
 
 def p_aux(p):
     ''' aux : NUM
@@ -160,6 +168,7 @@ def p_aux(p):
             | VAR DOT VAR 
             | LEN LPAREN operando RPAREN 
             | RANGE LPAREN operando COMMA operando RPAREN '''
+    print "aux"
 
 def p_m(p):
     ''' m : MINUS %prec UMINUS
@@ -172,6 +181,7 @@ def p_cuant(p):
 def p_list(p):
     '''list : LLIST VAR COLON operando COLON operando RLIST
             | LBRACK expList RBRACK'''
+    print "list"
 
 def p_cuan(p):
     '''cuan : operador
@@ -188,6 +198,10 @@ def p_operador(p):
 def p_expList(p):
     '''expList : expList COMMA operando
                | operando'''
+    if(len(p)==2):
+        print "expList , operando"
+    else:
+        print "operando"
 
 def p_opTby(p):
     'opTby : operando TBY LBRACK listVars RBRACK'
@@ -241,11 +255,12 @@ def p_typ(p):
 def p_val(p):
     '''val : operando
            | INPUT '''
+    print "operando o input"
 		   
 def p_error(p):
     print "Syntax error in input! %s" % p
 
-parser = yacc.yacc(start='program')
+parser = yacc.yacc(start='s')
 
 result = parser.parse(data)
 print result
