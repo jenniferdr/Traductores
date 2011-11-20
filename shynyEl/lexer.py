@@ -91,12 +91,12 @@ lexer= lex.lex()
 
 data= sys.argv[1]
 
-lexer.input(data)
+#lexer.input(data)
 
-tok=lexer.token()
-while (tok):
-    print tok #, tok.type,tok.value,tok.lineno,tok.lexpos
-    tok=lexer.token()
+#tok=lexer.token()
+#while (tok):
+#    print tok #, tok.type,tok.value,tok.lineno,tok.lexpos
+#    tok=lexer.token()
 
 # Reglas o Producciones de la Gramatica
 
@@ -127,7 +127,6 @@ class UnOp(Expresion):
     def __init__(self,opd,op):
         self.opd = opd	
         self.op = op
-        print(self.opd,self.op)
 
     def __str__(self):
         return "UnOp(" + self.opd + "," + self.op + ")"
@@ -165,7 +164,7 @@ class AccList(Expresion):
         return "AccList(" + self.var + "," + self.index + ")"
 
 class AccTab(Expresion):
-    def __init___(self,var,col,index):
+    def __init__(self,var,col,index):
         self.var = var
         self.col = col
         self.index = index
@@ -181,13 +180,12 @@ class Salida:
         return "Salida(" + str(self.exp) + ")"
 		
 class Tabla(Expresion):
-    def __init__(self,name,tam,col):
-        self.name = name
+    def __init__(self,tam,col):
         self.tam = tam
         self.col = col
 
     def __str__(self):
-        return "Expresion(" + self.name + "," + self.tam + "," + self.col + ")"
+        return "Expresion(" + self.tam + "," + self.col + ")"
 
 class ColTabla:
     def __init__(self,var,type,exp):
@@ -226,6 +224,14 @@ class Cuant(Expresion):
 
     def __str__(self):
         return "Cuant(" + self.op + "," + self.var + "," + self.list + "," + self.exp + ")"
+		
+class Cond(Expresion):
+    def __init__(self,eq,cond):
+        self.eq = eq
+        self.cond = cond
+
+    def __str__(self):
+        return "Cond(" + self.eq + "," + self.cond + ")"
 
 def p_program(p):
     '''program : igual declaraciones
@@ -252,7 +258,8 @@ def p_declaraciones(p):
         p[0] = ([p[1]],[p[3]],[p[5]])
     else:
         (p[5][0].append(p[1]),p[5][1].append(p[3]),p[5][2].append(p[7]))
-        p[0] = p[5]	
+        p[0] = p[5]
+        print p[0]
 
 def p_type(p):
     ''' type : INT
@@ -310,7 +317,7 @@ def p_aux(p):
     elif len(p) == 3:
         p[0] = UnOp(p[1],p[2])
     else:
-        p[0] = Ctte(p[1])
+        p[0] = p[1]
         
 def p_m(p):
     ''' m : MINUS %prec UMINUS
@@ -350,7 +357,8 @@ def p_expList(p):
     if len(p) == 2:
         p[0] = [p[1]]    
     else:
-        p[0] = p[1].extend([p[3]])
+        p[1].extend([p[3]])
+        p[0] = p[1]
 
 def p_opTby(p):
     'opTby : operando TBY LBRACK listVars RBRACK'
@@ -382,9 +390,9 @@ def p_expBool(p):
                | condExp
                | m LPAREN expBool RPAREN '''
     if len(p) == 5:
-        p[0] = p[1] + p[2] + p[3] + p[4]
+        p[0] = UnOp(p[1],p[3])
     elif len(p) == 4:
-        p[0] = p[1] + p[2] + p[3]
+        p[0] = BinOp(p[1],p[2],p[3])
     else:
         p[0] = p[1]    
 
@@ -400,9 +408,9 @@ def p_condExp(p):
                | m TRUE
                | m FALSE '''
     if len(p) == 5:
-        p[0] = p[1] + p[2] + p[3] + p[4]
+        p[0] = Cond(p[1],p[3])
     elif len(p) == 4:
-        p[0] = p[1] + p[2] + p[3]
+        p[0] = BinOp(p[1],p[2],p[3])
     else:
         p[0] = UnOp(p[1],p[2])
 
@@ -412,7 +420,7 @@ def p_condExp(p):
  
 def p_tabla(p):
     'tabla : NEWTABLE LBRACK operando RBRACK WHERE col'
-    p[0] = Tabla(p[1],p[3],p[6])
+    p[0] = Tabla(p[3],p[6])
 
 def p_col(p):
     ''' col : VAR COLON typ ASIG val
@@ -435,6 +443,7 @@ def p_val(p):
 def p_error(p):
     print "Syntax error in input! %r" % p.value
 
+print "\n"	
 parser = yacc.yacc(start='program')
 result = parser.parse(data)
 print result
