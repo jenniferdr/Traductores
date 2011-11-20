@@ -80,7 +80,7 @@ def t_NUM(t):
     return t
 
 def t_STRING(t):
-    r'"(\\(?="))*"'
+    r'"([^"\\]|\\")*"'
     return t
 
 def t_error(t):
@@ -89,7 +89,7 @@ def t_error(t):
 
 lexer= lex.lex()
 
-data= '= 45'
+data= '= "hola people"'
 
 lexer.input(data)
 
@@ -196,7 +196,7 @@ class Cuant(Expresion):
         self.exp = exp		
 
 def p_program(p):
-    '''program : igual declaraciones'
+    '''program : igual declaraciones
                | EQ expresion'''
     if p[1] == '=':
         p[0] = Salida(p[2])
