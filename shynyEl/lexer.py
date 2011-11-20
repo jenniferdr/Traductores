@@ -80,7 +80,7 @@ def t_NUM(t):
     return t
 
 def t_STRING(t):
-    r'"([^"\\]|\\")*"'
+    r'"([^"]|\")*"'
     return t
 
 def t_error(t):
@@ -89,7 +89,7 @@ def t_error(t):
 
 lexer= lex.lex()
 
-data= '= "hola people"'
+data= sys.argv[1]
 
 lexer.input(data)
 
