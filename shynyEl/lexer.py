@@ -300,9 +300,6 @@ class List(Expresion):
 
 def p_program_dec(p):
     'program : igual declaraciones'
-    for i,v in enumerate(p[2].vars):
-        nombres[v]= (p[2].typs[i],p[2].exps[i])
-    print nombres
     if p[1] == '=':
         p[0] = Salida(p[2])
     else:
@@ -326,13 +323,15 @@ def p_declaraciones(p):
     '''declaraciones : VAR COLON type COMMA declaraciones COMMA expresion
                      | VAR COLON type ASIG expresion ''' 
     if len(p) == 6:
-        p[0] = Dec([p[1]],[p[3]],[p[5]])
+        p[0] = [Dec(p[1],p[3],p[5])]
     else:
-        p[5].vars.append(p[1])
-        p[5].typs.append(p[3])
-        p[5].exps.append(p[7])
-        p[0] = p[5]
+        p[5][0].append(p[1])
+        p[5][1].append(p[3])
+        p[5][2].append(p[7])
+        for i,var in enumerate(p[5][0]):
+            p[0].append(Dec(var,p[5][1][i],p[5][2][i]))       
 
+        
 def p_type(p):
     ''' type : typ
              | LIST OF typ 
