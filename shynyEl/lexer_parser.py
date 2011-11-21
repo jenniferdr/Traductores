@@ -89,8 +89,6 @@ def t_error(t):
     print "Caracter '%s' no reconocido." % t.value[0]
     t.lexer.skip(1)
 
-lexer = lex.lex()
-
 precedence = (
     ('left','AND','OR'),
     ('right','UNOT'),
@@ -278,7 +276,7 @@ class SalidaExpresion:
         self.exp = exp
 
     def __str__(self):
-        return "NoSalida(" + str(self.exp) + ")"
+        return "Salida(" + str(self.exp) + ")"
 
 class Dec:
     def __init__(self,vars,typs,exps):
@@ -332,24 +330,19 @@ def p_program_dec(p):
             nombres[var] = (p[j][1][i],p[j][2][i])
         
     if len(p) == 3:
-        p[0] = Salida(aux)
+        p[0] = (Salida(aux),nombres)
     else:
-        p[0] = NoSalida(aux)
+        p[0] = (NoSalida(aux),nombres)
        
 def p_program_exp(p):
     'program : EQ expresion'
-    p[0] = SalidaExpresion(p[2])
+    p[0] = (SalidaExpresion(p[2]),nombres)
     
 def p_empty(p):
     'empty :'
     p[0] = ''
     pass
-    
-#def p_igual_salida(p):
-#    '''igual : EQ
-#             | empty'''
-#    p[0] = p[1]
-    
+        
 def p_declaraciones(p):
     '''declaraciones : VAR COLON type COMMA declaraciones COMMA expresion
                      | VAR COLON type ASIG expresion ''' 
@@ -580,5 +573,3 @@ def p_typ(p):
 
 def p_error(p):
     print "Syntax error in input! %r" % p.value
-
-parser = yacc.yacc(start='program',errorlog=yacc.NullLogger())

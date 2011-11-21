@@ -7,8 +7,19 @@
 # --------------------------------------------------
 
 import lexer_parser
+import ply.lex as lex
+import ply.yacc as yacc
 
-data = "= a+a"
+data = "a:int := c + v"
+
+lexer = lex.lex(module=lexer_parser)
+
+lexer.input(data)
+
+for tok in lexer:
+    print tok
+
+parser = yacc.yacc(module=lexer_parser,start='program',errorlog=yacc.NullLogger())
 
 result = parser.parse(data)
 
