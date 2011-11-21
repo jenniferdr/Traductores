@@ -48,8 +48,8 @@ while True:
         lexer.input(b)
         for tok in lexer: print tok
         result = parser.parse(b)
-#        tables.append(result[1])
-        print result
+        #tables.append(result[1])
+        print result[1]
 
 ### Crear grafo de dependencias
 ##for table in tables:
