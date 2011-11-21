@@ -58,7 +58,7 @@ while True:
         #for tok in lexer: print tok
         result = parser.parse(b)
         tables.append(result[1])
-        print result[0]
+        print result[1]
 
 file_e.close()
 		

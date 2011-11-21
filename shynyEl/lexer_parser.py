@@ -350,9 +350,9 @@ def p_program_dec(p):
                 simb_tabletype = {}
                 for c in col:
                     simb_tabletype[c.var] = (c.type,c.exp)
-                nombres[var] = (p[2][1][i],simb_tabletype)    
+                nombres[var.var] = (p[2][1][i],simb_tabletype)    
             else:
-                nombres[var] = (p[2][1][i],p[2][2][i])
+                nombres[var.var] = (p[2][1][i],p[2][2][i])
         p[0] = (Salida(aux),nombres)
     else:
         p[1][2].reverse()
@@ -364,9 +364,9 @@ def p_program_dec(p):
                 simb_tabletype = {}
                 for c in col:
                     simb_tabletype[c.var] = (c.type,c.exp)
-                nombres[var] = (p[1][1][i],simb_tabletype)    
+                nombres[var.var] = (p[1][1][i],simb_tabletype)    
             else:
-                nombres[var] = (p[1][1][i],p[1][2][i])	
+                nombres[var.var] = (p[1][1][i],p[1][2][i])	
         p[0] = (NoSalida(aux),nombres)
        
 def p_program_exp(p):
