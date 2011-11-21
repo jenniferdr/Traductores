@@ -46,10 +46,10 @@ while True:
     if bl:
         print "\n" + b
         lexer.input(b)
-        for tok in lexer: print tok
+        #for tok in lexer: print tok
         result = parser.parse(b)
 #        tables.append(result[1])
-        print result
+        print result[0]
 
 ### Crear grafo de dependencias
 ##for table in tables:
