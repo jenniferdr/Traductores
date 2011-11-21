@@ -13,7 +13,42 @@
 import lexer_parser
 import ply.lex as lex
 import ply.yacc as yacc
+import networkx as nx
+import matplotlib.pyplot as plt
 import sys
+
+def recorrer(var,expr):
+    if isinstance(expr,lexer_parser.BinOp):
+        recorrer(var,expr.op1)
+        recorrer(var,expr.op2)
+    elif isinstance(expr,lexer_parser.UnOp):
+        recorrer(var,expr.op)
+    elif isinstance(expr,lexer_parser.IfExp):
+        # Como sabemos de cual expresion depende
+        recorrer(var,expr.cond)
+        recorrer(var,expr.exp1)
+        recorrer(var,expr.exp2)
+    elif isinstance(expr,lexer_parser.AccList):
+        # Como sabemos que si se cambia un elemento cualquiera 
+        # de la lista var por otro lado, es o no es var[index]
+        recorrer(var,expr.index)
+        recorrer(var,expr.var)
+    elif isinstance(expr,lexer_parser.AccTab):
+        # var.var[index]
+        recorrer(var,expr.index)
+        # Como hago con var[index] y var.var[index]
+    elif isinstance(expr,lexer_parser.Range):
+        recorrer(var,expr.ini)
+        recorrer(var,expr.fin)
+    elif isinstance(expr,lexer_parser.Len):
+        recorrer(var,expr.var)
+    elif isinstance(expr,lexer_parser.List):
+        # Recorrer cada elemento de la lista
+        for elem in (expr.list):
+            recorrer(var,elem)
+    elif isinstance(expr,lexer_parser.Var):
+        GD.add_edge(var,expr.var)
+
 
 lexer = lex.lex(module=lexer_parser)
 parser = yacc.yacc(module=lexer_parser,start='program',errorlog=yacc.NullLogger())
@@ -62,33 +97,19 @@ while True:
 
 file_e.close()
 		
-### Crear grafo de dependencias
-##for table in tables:
-##    for var in keys(table):
-##        if tabla[var][0]=="table":
-##            for varT in keys(tabla[var][1]):
-##                recorrer(var+ "." + varT,tabla[var][1][varT][1])
-##        else:
-##            recorrer(var,table[var][1])
+# Crear grafo de dependencias
+global GD
+GD= nx.DiGraph()
 
-##def recorrer(var,expr):
-##    if issubclass(expr,BinOp):
-##        # recorrer para cada hijo
-##    elif issubclass(expr,UnOp):
-##        # recorrer para un hijo
-##    elif isinstance(expr,IfExp):
-##        # se debe recorrer cond para ver si cambia
-##        # los otros dos hijos importan?
-##    elif isinstance(expr,AccList):
-##        # Esto es var[index] ? recorrer index y
-##        # como hago para saber si cambia var[index] ??
-##    elif isinstance(expr,AccTab):
-##        # var.var[index]
-##        # recorrer index
-##        # Como hago con var[index] y var.var[index]
-##    elif isinstance(expr,Range):
-##        # recorrer expr.ini y expr.fin
-##    elif isinstance(expr,Len):
-##        # recorrer expr.var
-##    elif isinstance(expr,List):
-##        # para cada elemento de self.list recorrer
+for table in tables:
+    for var in table.keys():
+       # if table[var][0]=="table":
+        #    for varT in keys(tabla[var][1]):
+         #       recorrer(var+ "." + varT,tabla[var][1][varT][1])
+        #else:
+        recorrer(var,table[var][1])
+
+nx.draw(GD)
+plt.show()
+
+
