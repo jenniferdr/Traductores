@@ -203,7 +203,7 @@ class AccList(Expresion):
         self.index = index
 
     def __str__(self):
-        return "AccList(" + self.var + "," + str(self.index) + ")"
+        return "AccList(" + str(self.var) + "," + str(self.index) + ")"
 
 class AccTab(Expresion):
     def __init__(self,var,col,index):
@@ -306,7 +306,12 @@ class List(Expresion):
         self.list =  list
 
     def __str__(self):
-        return "List(" + str(self.list) + ")"
+        aux = '['
+        for exp in self.list:
+            aux = aux + str(exp) + ','
+        aux = aux[:-1] + ']'
+
+        return "List(" + aux + ")"        
 
 class Num(Expresion):
     def __init__(self,num):
@@ -321,6 +326,8 @@ class Var(Expresion):
 
     def __str__(self):
         return "Var("+self.var+ ")"
+
+#class Input(Expresion):
             
         
 ############################################################################
@@ -375,9 +382,9 @@ def p_declaraciones(p):
     '''declaraciones : VAR COLON type COMMA declaraciones COMMA expresion
                      | VAR COLON type ASIG expresion ''' 
     if len(p) == 6:
-        p[0] = ([p[1]],[p[3]],[p[5]])
+        p[0] = ([Var(p[1])],[p[3]],[p[5]])
     else:
-        p[5][0].append(p[1])
+        p[5][0].append(Var(p[1]))
         p[5][1].append(p[3])
         p[5][2].append(p[7])
         p[0] = p[5]
@@ -441,7 +448,7 @@ def p_aux_2(p):
         if p[2] == '(':
             p[0] = Range(p[3],p[5])
         if p[2] == '[':
-            p[0] = AccTab(p[1],p[6],p[3])
+            p[0] = AccTab(Var(p[1]),p[6],p[3])
     elif len(p) == 5:
         if p[2] == '(':
             if p[1] == 'len':
@@ -452,15 +459,15 @@ def p_aux_2(p):
                 else:
                     p[0] = p[3]
         elif p[2] == '[':
-            p[0] = AccList(p[1],p[3])
+            p[0] = AccList(Var(p[1]),p[3])
     elif len(p) == 4:
-        p[0] = AccTab(p[1],p[3],0)
+        p[0] = AccTab(Var(p[1]),Var(p[3]),0)
     elif len(p) == 3:
         p[0] = Min(p[2])
     elif isinstance(p[1],int):
         p[0]= Num(p[1])
     else:
-        p[0] = p[1]    
+        p[0] = p[1]
 
 def p_m(p):
     ''' m : MINUS %prec UMINUS
@@ -470,7 +477,7 @@ def p_m(p):
     
 def p_cuant(p):
     'cuant : LLIST cuan VAR COLON operando COLON operando RLIST'
-    p[0] = Cuant(p[2],p[3],p[5],p[7])
+    p[0] = Cuant(p[2],Var(p[3]),p[5],p[7])
     
 def p_list(p):
     '''list : LLIST VAR COLON operando COLON operando RLIST
@@ -478,7 +485,7 @@ def p_list(p):
     if len(p) == 4:
         p[0] = p[2]
     else:
-        p[0] = Cuant('',p[2],p[4],p[6])
+        p[0] = Cuant('',Var(p[2]),p[4],p[6])
     
 def p_cuan(p):
     '''cuan : operador
@@ -515,10 +522,10 @@ def p_listVars(p):
     '''listVars : listVars COMMA VAR
                 | VAR'''
     if len(p) == 4:
-        p[1].append(p[3])
+        p[1].list.append(Var(p[3]))
         p[0] = p[1]
     else:
-        p[0] = [p[1]]
+        p[0] = List([Var(p[1])])
 
 def p_select(p):
     'select : IF expBool THEN expresion ELSE expresion'
@@ -548,7 +555,7 @@ def p_expBool(p):
         elif p[2] == '|':
             p[0] = Or(p[1],p[3])
     else:
-        p[0] = p[1]
+        p[0] = Neg(p[1])
 
 def p_opBool(p):
     ''' opBool : AND
@@ -593,10 +600,10 @@ def p_col(p):
     ''' col : VAR COLON typ ASIG expresion
             | col SEMICOLON VAR COLON typ ASIG expresion'''
     if len(p) == 8:
-        p[1].append(ColTabla(p[3],p[5],p[7]))
+        p[1].append(ColTabla(Var(p[3]),p[5],p[7]))
         p[0] = p[1]
     else:
-        p[0] = [ColTabla(p[1],p[3],p[5])]
+        p[0] = [ColTabla(Var(p[1]),p[3],p[5])]
 
 def p_typ(p):
     '''typ : INT

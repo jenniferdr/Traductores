@@ -22,8 +22,12 @@ data = sys.argv[1]
 
 file = open(data,"r")
 
-tables = []
+salida = "marcas_" + file.name
 
+file_e = open(salida,"w")
+
+tables = []
+i = 1
 while True:
     b = ''
     bl = False
@@ -32,17 +36,22 @@ while True:
         break    
     if s1 == '{':
         s1 = file.read(1)
+        file_e.write("marca_shiny_"+str(i))
         while True:
             s1 = file.read(1)
             if s1 == '%':
                 s2 = file.read(1)
                 if  s2 == '}':
                     bl = True
+                    i += 1
                     break
                 else:
                     b = b + s1 + s2
             else:
                 b = b + s1
+    else:
+        file_e.write(s1)
+        
     if bl:
         print "\n" + b
         lexer.input(b)
@@ -50,34 +59,36 @@ while True:
         result = parser.parse(b)
         tables.append(result[1])
         print result[0]
-		
-# Crear grafo de dependencias
-for table in tables:
-    for var in keys(table):
-        if tabla[var][0]=="table":
-            for varT in keys(tabla[var][1]):
-                recorrer(var+ "." + varT,tabla[var][1][varT][1])
-        else:
-            recorrer(var,table[var][1])
 
-def recorrer(var,expr):
-    if issubclass(expr,BinOp):
-        # recorrer para cada hijo
-    elif issubclass(expr,UnOp):
-        # recorrer para un hijo
-    elif isinstance(expr,IfExp):
-        # se debe recorrer cond para ver si cambia
-        # los otros dos hijos importan?
-    elif isinstance(expr,AccList):
-        # Esto es var[index] ? recorrer index y
-        # como hago para saber si cambia var[index] ??
-    elif isinstance(expr,AccTab):
-        # var.var[index]
-        # recorrer index
-        # Como hago con var[index] y var.var[index]
-    elif isinstance(expr,Range):
-        # recorrer expr.ini y expr.fin
-    elif isinstance(expr,Len):
-        # recorrer expr.var
-    elif isinstance(expr,List):
-        # para cada elemento de self.list recorrer
+file_e.close()
+		
+### Crear grafo de dependencias
+##for table in tables:
+##    for var in keys(table):
+##        if tabla[var][0]=="table":
+##            for varT in keys(tabla[var][1]):
+##                recorrer(var+ "." + varT,tabla[var][1][varT][1])
+##        else:
+##            recorrer(var,table[var][1])
+
+##def recorrer(var,expr):
+##    if issubclass(expr,BinOp):
+##        # recorrer para cada hijo
+##    elif issubclass(expr,UnOp):
+##        # recorrer para un hijo
+##    elif isinstance(expr,IfExp):
+##        # se debe recorrer cond para ver si cambia
+##        # los otros dos hijos importan?
+##    elif isinstance(expr,AccList):
+##        # Esto es var[index] ? recorrer index y
+##        # como hago para saber si cambia var[index] ??
+##    elif isinstance(expr,AccTab):
+##        # var.var[index]
+##        # recorrer index
+##        # Como hago con var[index] y var.var[index]
+##    elif isinstance(expr,Range):
+##        # recorrer expr.ini y expr.fin
+##    elif isinstance(expr,Len):
+##        # recorrer expr.var
+##    elif isinstance(expr,List):
+##        # para cada elemento de self.list recorrer
