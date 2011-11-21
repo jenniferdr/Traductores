@@ -8,7 +8,6 @@
 import ply.lex as lex
 import ply.yacc as yacc
 import sys
-#import clases
 
 reserved= {
     'int': 'INT',
@@ -90,16 +89,7 @@ def t_error(t):
     print "Caracter '%s' no reconocido." % t.value[0]
     t.lexer.skip(1)
 
-lexer= lex.lex()
-
-data= sys.argv[1]
-#data= '= 3+a' 
-lexer.input(data)
-
-tok=lexer.token()
-while (tok):
-    print tok #, tok.type,tok.value,tok.lineno,tok.lexpos
-    tok=lexer.token()
+lexer = lex.lex()
 
 precedence = (
     ('left','AND','OR'),
@@ -355,10 +345,10 @@ def p_empty(p):
     p[0] = ''
     pass
     
-def p_igual_salida(p):
-    '''igual : EQ
-            | empty'''
-    p[0] = p[1]
+#def p_igual_salida(p):
+#    '''igual : EQ
+#             | empty'''
+#    p[0] = p[1]
     
 def p_declaraciones(p):
     '''declaraciones : VAR COLON type COMMA declaraciones COMMA expresion
@@ -591,10 +581,4 @@ def p_typ(p):
 def p_error(p):
     print "Syntax error in input! %r" % p.value
 
-print "\n"	
 parser = yacc.yacc(start='program')
-result = parser.parse(data)
-print result
-
-print "\n"
-print nombres
