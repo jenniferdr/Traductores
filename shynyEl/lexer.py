@@ -316,13 +316,13 @@ class List(Expresion):
 #######################################################
 
 def p_program_dec(p):
-    '''program : EQ declaraciones
-               | declaraciones'''
+    '''program : igual declaraciones'''
+ #              | declaraciones'''
     p[2][2].reverse()
     aux = []
     for i,var in enumerate(p[2][0]):
         aux.append(Dec(var,p[2][1][i],p[2][2][i]))
-    if len(p)==3:
+    if p[0]=="=":
         p[0] = Salida(aux)
     else:
         p[0] = NoSalida(aux)
@@ -336,10 +336,10 @@ def p_empty(p):
     p[0] = ''
     pass
     
-#def p_igual_salida(p):
-#    '''igual : EQ
-#             | empty'''
-#    p[0] = p[1]
+def p_igual_salida(p):
+    '''igual : EQ
+            | empty'''
+    p[0] = p[1]
     
 def p_declaraciones(p):
     '''declaraciones : VAR COLON type COMMA declaraciones COMMA expresion
