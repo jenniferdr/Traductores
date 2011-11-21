@@ -304,9 +304,24 @@ class List(Expresion):
     def __str__(self):
         return "List(" + str(self.list) + ")"
 
-#######################################################
-#####   Reglas o Producciones de la Gramatica  ########
-#######################################################
+class Num(Expresion):
+    def __init__(self,num):
+        self.num= num
+    
+    def __str__(self):
+        return "Num("+ str(num) +")"
+
+class Var(Expresion):
+    def __init__(self,var):
+        self.var=var
+
+    def __str__(self):
+        return "Var(" + ""
+            
+        
+############################################################
+#########  Reglas o Producciones de la Gramatica  ##########
+############################################################
 
 def p_program_dec(p):
     '''program : EQ declaraciones
