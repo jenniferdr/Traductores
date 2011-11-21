@@ -1,10 +1,10 @@
-# --------------------------------------------------
-# Analizador lexicografico para el lenguaje ShinyEl
+# --------------------------------------------------------------
+# Analizador lexicografico y sintactico para el lenguaje ShinyEl
 # 
 # Autores : Hancel Gonzalez   07-40983
 #           Jennifer Dos Reis 08-10323
 #
-# --------------------------------------------------
+# ---------------------------------------------------------------
 import ply.lex as lex
 import ply.yacc as yacc
 import sys
@@ -38,7 +38,6 @@ tokens= ['NUM','VAR','STRING','LBRACK','RBRACK','MINUS',
 
 # ER de cada Token
 
-#t_QUOT=    r'"'
 t_LBRACK=  r'\['
 t_RBRACK=  r'\]'
 t_MINUS=   r'-'
@@ -102,7 +101,12 @@ precedence = (
     ('right','UMINUS'),
     )
 
+# Diccionario para la tabla de simbolos 
 nombres={}
+
+###########################################################################
+#########   CLASES PARA REPRESENTACION DEL ARBOL SINTACTICO ###############
+###########################################################################
 
 class Expresion: pass
 
@@ -307,9 +311,24 @@ class List(Expresion):
     def __str__(self):
         return "List(" + str(self.list) + ")"
 
-#######################################################
-#####   Reglas o Producciones de la Gramatica  ########
-#######################################################
+class Num(Expresion):
+    def __init__(self,num):
+        self.num= num
+    
+    def __str__(self):
+        return "Num("+ str(num) +")"
+
+class Var(Expresion):
+    def __init__(self,var):
+        self.var=var
+
+    def __str__(self):
+        return "Var("+var+ ")"
+            
+        
+############################################################################
+#########··········  PRODUCCIONES DE LA GRAMATICA  ·············· ##########
+############################################################################
 
 def p_program_dec(p):
     '''program : EQ declaraciones
@@ -395,9 +414,12 @@ def p_operando(p):
     else:
         p[0] = p[1]
 
-def p_aux(p):
+def p_aux_1(p):
+    'aux : VAR'
+    p[0]= Var(p[1])
+
+def p_aux_2(p):
     ''' aux : NUM
-            | VAR
             | m LPAREN operando RPAREN
             | MINUS aux %prec UMINUS
             | STRING
@@ -429,6 +451,8 @@ def p_aux(p):
         p[0] = AccTab(p[1],p[3],0)
     elif len(p) == 3:
         p[0] = Min(p[2])
+    elif isinstance(p[1],int):
+        p[0]= Num(p[1])
     else:
         p[0] = p[1]    
 
