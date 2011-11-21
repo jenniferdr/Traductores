@@ -1,10 +1,14 @@
-# --------------------------------------------------
-# Reconocedor de codigo ShinyEl.
-# 
+# --------------------------------------------------------------------------
+# Programa que tiene como entrada un archivo html,con tags de codigo shinyEL.
+# Realiza el analisis lexicografico y sintactico de los fragmentos shinyEL. 
+#
+# Devuelve una representacion intermedia del codigo html con marcas en donde 
+# aparecen los tags de shinyEL. Y construye el grafo de dependencias. 
+#
 # Autores : Hancel Gonzalez   07-40983
 #           Jennifer Dos Reis 08-10323
 #
-# --------------------------------------------------
+# -------------------------------------------------------------------------
 
 import lexer_parser
 import ply.lex as lex
