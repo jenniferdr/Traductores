@@ -610,6 +610,5 @@ def p_typ(p):
            | TSTRING'''
     p[0] = p[1]
 
-
 def p_error(p):
     print "Syntax error in input! %r" % p.value
