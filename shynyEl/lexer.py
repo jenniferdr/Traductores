@@ -240,7 +240,12 @@ class Tabla(Expresion):
         self.col = col
 
     def __str__(self):
-        return "Tabla(" + str(self.tam) + "," + str(self.col) + ")"
+        aux = '['
+        for c in self.col:
+            aux = aux + '(' + str(c.var) + ',' + str(c.type) + ',' + str(c.exp) + ')' + ','
+        aux = aux[:-1] + ']'
+        
+        return "Tabla(" + str(self.tam) + "," + aux + ")"
 
 class ColTabla:
     def __init__(self,var,type,exp):
@@ -327,6 +332,14 @@ def p_program_dec(p):
     aux = []
     for i,var in enumerate(p[j][0]):
         aux.append(Dec(var,p[j][1][i],p[j][2][i]))
+        if isinstance(p[j][2][i],Tabla):
+            col = p[j][2][i].col
+            simb_tabletype = {}
+            for c in col:
+                simb_tabletype[c.var] = (c.type,c.exp)
+            nombres[var] = (p[j][1][i],simb_tabletype)    
+        else:
+            nombres[var] = (p[j][1][i],p[j][2][i])
         
     if len(p) == 3:
         p[0] = Salida(aux)
@@ -582,3 +595,6 @@ print "\n"
 parser = yacc.yacc(start='program')
 result = parser.parse(data)
 print result
+
+print "\n"
+print nombres
