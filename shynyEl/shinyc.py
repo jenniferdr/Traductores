@@ -46,38 +46,38 @@ while True:
     if bl:
         print "\n" + b
         lexer.input(b)
-        for tok in lexer: print tok
+        #for tok in lexer: print tok
         result = parser.parse(b)
-        #tables.append(result[1])
-        print result[1]
+        tables.append(result[1])
+        print result[0]
+		
+# Crear grafo de dependencias
+for table in tables:
+    for var in keys(table):
+        if tabla[var][0]=="table":
+            for varT in keys(tabla[var][1]):
+                recorrer(var+ "." + varT,tabla[var][1][varT][1])
+        else:
+            recorrer(var,table[var][1])
 
-### Crear grafo de dependencias
-##for table in tables:
-##    for var in keys(table):
-##        if tabla[var][0]=="table":
-##            for varT in keys(tabla[var][1]):
-##                recorrer(var+ "." + varT,tabla[var][1][varT][1])
-##        else:
-##            recorrer(var,table[var][1])
-
-#def recorrer(var,expr):
-#    if issubclass(expr,BinOp):
-#        # recorrer para cada hijo
-#    elif issubclass(expr,UnOp):
-#        # recorrer para un hijo
-#    elif isinstance(expr,IfExp):
-#        # se debe recorrer cond para ver si cambia
-#        # los otros dos hijos importan?
-#    elif isinstance(expr,AccList):
-#        # Esto es var[index] ? recorrer index y
-#        # como hago para saber si cambia var[index] ??
-#    elif isinstance(expr,AccTab):
-#        # var.var[index]
-#        # recorrer index
-#        # Como hago con var[index] y var.var[index]
-#    elif isinstance(expr,Range):
-#        # recorrer expr.ini y expr.fin
-##    elif isinstance(expr,Len):
-##        # recorrer expr.var
-##    elif isinstance(expr,List):
-##        # para cada elemento de self.list recorrer
+def recorrer(var,expr):
+    if issubclass(expr,BinOp):
+        # recorrer para cada hijo
+    elif issubclass(expr,UnOp):
+        # recorrer para un hijo
+    elif isinstance(expr,IfExp):
+        # se debe recorrer cond para ver si cambia
+        # los otros dos hijos importan?
+    elif isinstance(expr,AccList):
+        # Esto es var[index] ? recorrer index y
+        # como hago para saber si cambia var[index] ??
+    elif isinstance(expr,AccTab):
+        # var.var[index]
+        # recorrer index
+        # Como hago con var[index] y var.var[index]
+    elif isinstance(expr,Range):
+        # recorrer expr.ini y expr.fin
+    elif isinstance(expr,Len):
+        # recorrer expr.var
+    elif isinstance(expr,List):
+        # para cada elemento de self.list recorrer

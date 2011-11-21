@@ -313,14 +313,14 @@ class Num(Expresion):
         self.num= num
     
     def __str__(self):
-        return "Num("+ str(num) +")"
+        return "Num("+ str(self.num) +")"
 
 class Var(Expresion):
     def __init__(self,var):
         self.var=var
 
     def __str__(self):
-        return "Var("+var+ ")"
+        return "Var("+self.var+ ")"
             
         
 ############################################################################
