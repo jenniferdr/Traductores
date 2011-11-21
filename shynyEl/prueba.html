@@ -3,6 +3,7 @@
     <title> Calculo de factorial </title>
   </head>
   <body>
+    {% = if !(a[4] > b) & (c > d) then 4 else a %}
     Ingrese un numero: {%= n : int := input %}
     <hr />
       Factoriales: {%= [] fby [% i : range(0, n) : [% *j : range(1, i) : j %] %] %}      
