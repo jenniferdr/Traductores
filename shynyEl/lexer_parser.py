@@ -101,9 +101,6 @@ precedence = (
     ('right','UMINUS'),
     )
 
-# Diccionario para la tabla de simbolos 
-nombres={}
-
 ###########################################################################
 #########   CLASES PARA REPRESENTACION DEL ARBOL SINTACTICO ###############
 ###########################################################################
@@ -333,32 +330,41 @@ class Var(Expresion):
 def p_program_dec(p):
     '''program : EQ declaraciones
                | declaraciones'''
+    
+    nombres={} # Diccionario para la tabla de simbolos 
+    
     if len(p) == 3:
-        j = 2
-    else:
-        j = 1
-        
-    p[j][2].reverse()
-    aux = []
-    for i,var in enumerate(p[j][0]):
-        aux.append(Dec(var,p[j][1][i],p[j][2][i]))
-        if isinstance(p[j][2][i],Tabla):
-            col = p[j][2][i].col
-            simb_tabletype = {}
-            for c in col:
-                simb_tabletype[c.var] = (c.type,c.exp)
-            nombres[var] = (p[j][1][i],simb_tabletype)    
-        else:
-            nombres[var] = (p[j][1][i],p[j][2][i])
-        
-    if len(p) == 3:
+        p[2][2].reverse()
+        aux = []
+        for i,var in enumerate(p[2][0]):
+            aux.append(Dec(var,p[2][1][i],p[2][2][i]))
+            if isinstance(p[2][2][i],Tabla):
+                col = p[2][2][i].col
+                simb_tabletype = {}
+                for c in col:
+                    simb_tabletype[c.var] = (c.type,c.exp)
+                nombres[var] = (p[2][1][i],simb_tabletype)    
+            else:
+                nombres[var] = (p[2][1][i],p[2][2][i])
         p[0] = (Salida(aux),nombres)
     else:
+        p[1][2].reverse()
+        aux = []
+        for i,var in enumerate(p[1][0]):
+            aux.append(Dec(var,p[1][1][i],p[1][2][i]))
+            if isinstance(p[1][2][i],Tabla):
+                col = p[1][2][i].col
+                simb_tabletype = {}
+                for c in col:
+                    simb_tabletype[c.var] = (c.type,c.exp)
+                nombres[var] = (p[1][1][i],simb_tabletype)    
+            else:
+                nombres[var] = (p[1][1][i],p[1][2][i])	
         p[0] = (NoSalida(aux),nombres)
        
 def p_program_exp(p):
     'program : EQ expresion'
-    p[0] = (SalidaExpresion(p[2]),nombres)
+    p[0] = (SalidaExpresion(p[2]),{})
     
 def p_empty(p):
     'empty :'
