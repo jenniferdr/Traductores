@@ -227,7 +227,12 @@ class Salida:
         self.exp = exp
 
     def __str__(self):
-        return "Salida(" + str(self.exp) + ")"
+        aux = '['
+        for exp in self.exp:
+            aux = aux + str(exp) + ','
+        aux = aux[:-1] + ']'
+
+        return "Salida(" + aux + ")"
 		
 class Tabla(Expresion):
     def __init__(self,tam,col):
@@ -262,6 +267,18 @@ class Len(Expresion):
         return "Len(" + str(self.var) + ")"
 		
 class NoSalida:
+    def __init__(self,exp):
+        self.exp = exp
+
+    def __str__(self):
+        aux = '['
+        for exp in self.exp:
+            aux = aux + str(exp) + ','
+        aux = aux[:-1] + ']'
+
+        return "NoSalida(" + aux + ")"
+
+class SalidaExpresion:
     def __init__(self,exp):
         self.exp = exp
 
@@ -301,14 +318,18 @@ class List(Expresion):
 def p_program_dec(p):
     '''program : EQ declaraciones
                | declaraciones'''
+    p[2][2].reverse()
+    aux = []
+    for i,var in enumerate(p[2][0]):
+        aux.append(Dec(var,p[2][1][i],p[2][2][i]))
     if len(p)==3:
-        p[0] = Salida(p[2])
+        p[0] = Salida(aux)
     else:
-        p[0] = NoSalida(p[2])
+        p[0] = NoSalida(aux)
        
 def p_program_exp(p):
     'program : EQ expresion'
-    p[0] = Salida(p[2])
+    p[0] = SalidaExpresion(p[2])
     
 def p_empty(p):
     'empty :'
@@ -324,9 +345,11 @@ def p_declaraciones(p):
     '''declaraciones : VAR COLON type COMMA declaraciones COMMA expresion
                      | VAR COLON type ASIG expresion ''' 
     if len(p) == 6:
-        p[0] = [Dec(p[1],p[3],p[5])]
+        p[0] = ([p[1]],[p[3]],[p[5]])
     else:
-        p[5].append(Dec(p[1],p[3],p[7]))
+        p[5][0].append(p[1])
+        p[5][1].append(p[3])
+        p[5][2].append(p[7])
         p[0] = p[5]
 
 def p_type(p):
