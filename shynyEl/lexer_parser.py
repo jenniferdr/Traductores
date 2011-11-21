@@ -80,7 +80,7 @@ def t_NUM(t):
     return t
 
 def t_STRING(t):
-    r'"([^"\\]|\\"|\\\\|\n|\t|\r|\f|\v)*"'
+    r'"([^"\\]|\\"|\\\\|\\n|\\t|\\r|\\f|\\v)*"'
     t.value= (t.value)[1:-1]
     return t
 
