@@ -93,7 +93,7 @@ def t_error(t):
 lexer= lex.lex()
 
 data= sys.argv[1]
-#data= ''' =A:int,B_:string:=b,"hola \" chao" ''' 
+#data= '= 3+a' 
 lexer.input(data)
 
 tok=lexer.token()
@@ -299,8 +299,9 @@ class List(Expresion):
 #######################################################
 
 def p_program_dec(p):
-    'program : igual declaraciones'
-    if p[1] == '=':
+    '''program : EQ declaraciones
+               | declaraciones'''
+    if len(p)==3:
         p[0] = Salida(p[2])
     else:
         p[0] = NoSalida(p[2])
@@ -314,10 +315,10 @@ def p_empty(p):
     p[0] = ''
     pass
     
-def p_igual_salida(p):
-    '''igual : EQ
-             | empty'''
-    p[0] = p[1]
+#def p_igual_salida(p):
+#    '''igual : EQ
+#             | empty'''
+#    p[0] = p[1]
     
 def p_declaraciones(p):
     '''declaraciones : VAR COLON type COMMA declaraciones COMMA expresion
@@ -401,7 +402,7 @@ def p_aux(p):
     elif len(p) == 3:
         p[0] = Min(p[2])
     else:
-        p[0] = p[1]
+        p[0] = p[1]    
 
 def p_m(p):
     ''' m : MINUS %prec UMINUS
