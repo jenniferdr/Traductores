@@ -90,8 +90,11 @@ def t_error(t):
     t.lexer.skip(1)
 
 precedence = (
+    ('left','IF','THEN','ELSE'),
     ('left','AND','OR'),
     ('right','UNOT'),
+    ('left','TBY'),
+    ('right','FBY'),
     ('nonassoc','LT','LTE','GT','GTE'),
     ('nonassoc','EQ','NOTEQ'),
     ('left','PLUS','MINUS'),

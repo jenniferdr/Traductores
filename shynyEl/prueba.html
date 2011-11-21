@@ -1,3 +1,39 @@
-mnbvcbjk{% = p+a %}lkjhgjk{% = if a > 0 then 13 +a else range(0,4)%}kjhgjk
-mnbvcbjk{% = p+
-a %}lkjhgjk{% = if a > 0 then 13 +a else range(0,4)%}kjhgjk
+<html>
+  <head>
+    <title> Calculo de factorial </title>
+  </head>
+  <body>
+    Ingrese un numero: {%= n : int := input %}
+    <hr />
+      Factoriales: {%= [] fby [% i : range(0, n) : [% *j : range(1, i) : j %] %] %}      
+  </body>
+</html>
+
+
+<html>
+  <head>
+    <title> Calculo de facturas </title>
+  </head>
+  <body>
+    {%= prod: table := new table[5] where
+    nombre : string := input;
+    unidades : int := input;
+    precioUnitario : int := input;
+    total : int := unidades * precioUnitario
+    %}
+    <hr />
+      Gran total: {%= [% +i : prod : i[total] %] %}
+      Gran total: {%= if a > 0 then if b > 0 then j+k else l else p %}
+  </body>
+</html>
+
+<html>
+  <head>
+    <title> Calculo de promedio </title>
+  </head>
+  <body>
+    <p> Ingrese un n&uacute;mero: {%= in:int := input %} </p>
+    <p> {%= if count = 0 then "" else "El promedio es: " %}{%= sum / count %} </p>
+    {% sum:int, count:int := 0 fby sum + in, (0 fby count+1) tby [in] %}
+  </body>
+</html>
