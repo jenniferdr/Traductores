@@ -581,4 +581,4 @@ def p_typ(p):
 def p_error(p):
     print "Syntax error in input! %r" % p.value
 
-parser = yacc.yacc(start='program')
+parser = yacc.yacc(start='program',errorlog=yacc.NullLogger())
