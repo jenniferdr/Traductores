@@ -318,11 +318,17 @@ class List(Expresion):
 def p_program_dec(p):
     '''program : EQ declaraciones
                | declaraciones'''
-    p[2][2].reverse()
+    if len(p) == 3:
+        j = 2
+    else:
+        j = 1
+        
+    p[j][2].reverse()
     aux = []
-    for i,var in enumerate(p[2][0]):
-        aux.append(Dec(var,p[2][1][i],p[2][2][i]))
-    if len(p)==3:
+    for i,var in enumerate(p[j][0]):
+        aux.append(Dec(var,p[j][1][i],p[j][2][i]))
+        
+    if len(p) == 3:
         p[0] = Salida(aux)
     else:
         p[0] = NoSalida(aux)
