@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 # --------------------------------------------------------------------------
 # Programa que tiene como entrada un archivo html con tags de codigo shinyEL.
 # Realiza el analisis lexicografico y sintactico de los fragmentos shinyEL. 
@@ -61,8 +63,10 @@ def recorrer(var,expr):
         for elem in (expr.list):
             recorrer(var,elem)
     elif isinstance(expr,lexer_parser.Cuant):
-		recorrer(var,expr.exp)
-		GD.remove_node(var)
+        # Cuantificador: [% var: L : exp %]
+        recorrer(var,expr.exp)
+        recorrer(var,expr.list)     
+        GD.remove_node(var)
     elif isinstance(expr,lexer_parser.Var):
         # Caso base: expr es una variable
         GD.add_edge(var,expr.var)
@@ -104,7 +108,7 @@ while True:
                 b = b + s1
     else:
         file_e.write(s1)
-    # Analisis del bloque de codigo
+        # Analisis del bloque de codigo
 	if bl and b != '':
         print "\n" + b
         lexer.input(b)
