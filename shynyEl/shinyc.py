@@ -14,7 +14,7 @@ import lexer_parser
 import ply.lex as lex
 import ply.yacc as yacc
 import networkx as nx
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import sys
 
 def recorrer(var,expr):
@@ -86,14 +86,13 @@ while True:
                 b = b + s1
     else:
         file_e.write(s1)
-        
-    if bl:
+    if bl and b != '':
         print "\n" + b
         lexer.input(b)
         #for tok in lexer: print tok
         result = parser.parse(b)
         tables.append(result[1])
-        print result[1]
+        print result[0]
 
 file_e.close()
 		
@@ -109,7 +108,7 @@ for table in tables:
         #else:
         recorrer(var,table[var][1])
 
-nx.draw(GD)
-plt.show()
+#nx.draw(GD)
+#plt.show()
 
 

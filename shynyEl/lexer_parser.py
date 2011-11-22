@@ -225,7 +225,7 @@ class Salida:
         aux = aux[:-1] + ']'
 
         return "Salida(" + aux + ")"
-		
+
 class Tabla(Expresion):
     def __init__(self,tam,col):
         self.tam = tam
@@ -247,7 +247,7 @@ class ColTabla:
 
     def __str__(self):
         return "ColTabla(" +str( self.var) + "," + self.type + "," + str(self.exp) + ")"
-		
+
 class Range(Expresion):
     def __init__(self,ini,fin):
         self.ini = ini
@@ -262,7 +262,7 @@ class Len(Expresion):
 
     def __str__(self):
         return "Len(" + str(self.var) + ")"
-		
+
 class NoSalida:
     def __init__(self,exp):
         self.exp = exp
@@ -290,7 +290,7 @@ class Dec:
 
     def __str__(self):
         return "Dec(" + str(self.vars) + "," + str(self.typs) + "," + str(self.exps) + ")"
-		
+
 class Cuant(Expresion):
     def __init__(self,op,var,list,exp):
         self.op = op
