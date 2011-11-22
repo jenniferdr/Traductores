@@ -14,7 +14,7 @@ import lexer_parser
 import ply.lex as lex
 import ply.yacc as yacc
 import networkx as nx
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import sys
 
 def recorrer(var,expr):
@@ -46,9 +46,11 @@ def recorrer(var,expr):
         # Recorrer cada elemento de la lista
         for elem in (expr.list):
             recorrer(var,elem)
+    elif isinstance(expr,lexer_parser.Cuant):
+		recorrer(var,expr.exp)
     elif isinstance(expr,lexer_parser.Var):
         GD.add_edge(var,expr.var)
-
+        GD.remove_node(var)
 
 lexer = lex.lex(module=lexer_parser)
 parser = yacc.yacc(module=lexer_parser,start='program',errorlog=yacc.NullLogger())
@@ -61,6 +63,7 @@ salida = "marcas_" + file.name
 
 file_e = open(salida,"w")
 
+# Reconocimiento de los bloques correspondientes a codigo shinyEL
 tables = []
 i = 1
 while True:
@@ -71,7 +74,7 @@ while True:
         break    
     if s1 == '{':
         s1 = file.read(1)
-        file_e.write("marca_shiny_"+str(i))
+        file_e.write("marca_shiny_"+str(i)) # Escritura de la marca shiny en nuevo archivo html
         while True:
             s1 = file.read(1)
             if s1 == '%':
@@ -86,12 +89,13 @@ while True:
                 b = b + s1
     else:
         file_e.write(s1)
-    if bl and b != '':
+    # Analisis del bloque de codigo
+	if bl and b != '':
         print "\n" + b
         lexer.input(b)
         #for tok in lexer: print tok
         result = parser.parse(b)
-        tables.append(result[1])
+        tables.append(result[1]) # Se aniade la tabla de simbolo del bloque a una lista
         print result[0]
 
 file_e.close()
@@ -108,7 +112,5 @@ for table in tables:
         #else:
         recorrer(var,table[var][1])
 
-#nx.draw(GD)
-#plt.show()
-
-
+nx.draw(GD)
+plt.show()

@@ -105,6 +105,46 @@ precedence = (
 #########   CLASES PARA REPRESENTACION DEL ARBOL SINTACTICO ###############
 ###########################################################################
 
+class Salida:
+    def __init__(self,exp):
+        self.exp = exp
+
+    def __str__(self):
+        aux = '['
+        for exp in self.exp:
+            aux = aux + str(exp) + ','
+        aux = aux[:-1] + ']'
+
+        return "Salida(" + aux + ")"
+		
+class SalidaExpresion:
+    def __init__(self,exp):
+        self.exp = exp
+
+    def __str__(self):
+        return "Salida(" + str(self.exp) + ")"
+		
+class NoSalida:
+    def __init__(self,exp):
+        self.exp = exp
+
+    def __str__(self):
+        aux = '['
+        for exp in self.exp:
+            aux = aux + str(exp) + ','
+        aux = aux[:-1] + ']'
+
+        return "NoSalida(" + aux + ")"
+
+class Dec:
+    def __init__(self,vars,typs,exps):
+        self.vars = vars
+        self.typs = typs
+        self.exps = exps
+
+    def __str__(self):
+        return "Dec(" + str(self.vars) + "," + str(self.typs) + "," + str(self.exps) + ")"
+		
 class Expresion: pass
 
 class BinOp(Expresion):
@@ -214,18 +254,6 @@ class AccTab(Expresion):
     def __str__(self):
         return "AccTab(" + str(self.var) + "," + self.col + "," + str(self.index) + ")"
 
-class Salida:
-    def __init__(self,exp):
-        self.exp = exp
-
-    def __str__(self):
-        aux = '['
-        for exp in self.exp:
-            aux = aux + str(exp) + ','
-        aux = aux[:-1] + ']'
-
-        return "Salida(" + aux + ")"
-
 class Tabla(Expresion):
     def __init__(self,tam,col):
         self.tam = tam
@@ -262,34 +290,6 @@ class Len(Expresion):
 
     def __str__(self):
         return "Len(" + str(self.var) + ")"
-
-class NoSalida:
-    def __init__(self,exp):
-        self.exp = exp
-
-    def __str__(self):
-        aux = '['
-        for exp in self.exp:
-            aux = aux + str(exp) + ','
-        aux = aux[:-1] + ']'
-
-        return "NoSalida(" + aux + ")"
-
-class SalidaExpresion:
-    def __init__(self,exp):
-        self.exp = exp
-
-    def __str__(self):
-        return "Salida(" + str(self.exp) + ")"
-
-class Dec:
-    def __init__(self,vars,typs,exps):
-        self.vars = vars
-        self.typs = typs
-        self.exps = exps
-
-    def __str__(self):
-        return "Dec(" + str(self.vars) + "," + str(self.typs) + "," + str(self.exps) + ")"
 
 class Cuant(Expresion):
     def __init__(self,op,var,list,exp):
