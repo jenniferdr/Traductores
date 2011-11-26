@@ -70,7 +70,12 @@ def recorrer(var,expr):
         GD.remove_node(var)
     elif isinstance(expr,lexer_parser.Var):
         # Caso base: expr es una variable
-        GD.add_edge(expr.var,var)
+        if (contexTabla):
+            if (expr.var in diccTabla.keys()):
+                tabla= nombreTabla 
+                GD.add_edge(tabla +"." + expr.var,var)
+            else:
+                GD.add_edge(expr.var,var)
 
 lexer = lex.lex(module=lexer_parser)
 parser = yacc.yacc(module=lexer_parser,start='program',errorlog=yacc.NullLogger())
@@ -94,7 +99,8 @@ while True:
         break    
     if s1 == '{':
         s1 = file.read(1)
-        file_e.write("marca_shiny_"+str(i)) # Escritura de la marca shiny en nuevo archivo html
+        # Escritura de la marca shiny en nuevo archivo html
+        file_e.write("marca_shiny_"+str(i)) 
         while True:
             s1 = file.read(1)
             if s1 == '%':
@@ -113,20 +119,37 @@ while True:
     if bl and b != '':
         print "\n" + b
         lexer.input(b)
+        # if error continue
         #for tok in lexer: print tok
         result = parser.parse(b)
-        tables.append(result[1]) # Se aniade la tabla de simbolo del bloque a una lista
+        # Se anida la tabla de simbolo del bloque a una lista
+        tables.append(result[1]) 
         print result[0]
 
 file_e.close()
 		
 # Crear grafo de dependencias
 global GD
+
+# Variable booleana que identifica si se esta dentro del
+# contexto de una tabla
+global contexTabla
+contexTabla= False
+# Si la variable contexTabla es True diccTabla contiene el
+# diccionario de variables contenidas dentro de la tabla y
+# nombreTabla contiene el nombre de la misma
+global diccTabla
+global nombreTabla
+
 GD= nx.DiGraph()
 
 for table in tables:
     for var in table.keys():
+        # Si el tipo de la variable es 'table'
         if table[var][0]=="table":
+            contexTabla=True
+            diccTabla= table[var][1]
+            nombreTabla= var
             for varT in table[var][1].keys():
                 recorrer(var+ "." + varT,table[var][1][varT][1])
         else:
