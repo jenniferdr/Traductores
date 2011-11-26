@@ -555,7 +555,7 @@ def p_expBool(p):
         elif p[2] == '|':
             p[0] = Or(p[1],p[3])
     else:
-        p[0] = Neg(p[1])
+        p[0] = Cond(p[1])
 
 def p_opBool(p):
     ''' opBool : AND
