@@ -105,10 +105,11 @@ precedence = (
 #########   CLASES PARA REPRESENTACION DEL ARBOL SINTACTICO ###############
 ###########################################################################
 
-class Salida:
+class SalidaNoSalida:
     def __init__(self,exp):
         self.exp = exp
 
+class Salida(SalidaNoSalida):
     def __str__(self):
         aux = '['
         for exp in self.exp:
@@ -116,18 +117,8 @@ class Salida:
         aux = aux[:-1] + ']'
 
         return "Salida(" + aux + ")"
-		
-class SalidaExpresion:
-    def __init__(self,exp):
-        self.exp = exp
-
-    def __str__(self):
-        return "Salida(" + str(self.exp) + ")"
-		
-class NoSalida:
-    def __init__(self,exp):
-        self.exp = exp
-
+	
+class NoSalida(SalidaNoSalida):
     def __str__(self):
         aux = '['
         for exp in self.exp:
@@ -135,16 +126,50 @@ class NoSalida:
         aux = aux[:-1] + ']'
 
         return "NoSalida(" + aux + ")"
+		
+class SalidaExpresion(SalidaNoSalida):
+    def __str__(self):
+        return "SalidaExpression(" + str(self.exp) + ")"
+    		
+class NoSalidaExpresion(SalidaNoSalida):
+     def __str__(self):
+        return "NoSalidaExpression(" + str(self.exp) + ")"
 
 class Dec:
-    def __init__(self,vars,typs,exps):
-        self.vars = vars
-        self.typs = typs
-        self.exps = exps
+    def __init__(self,var,type,exp):
+        self.var = var
+        self.type = type
+        self.exp = exp
 
     def __str__(self):
-        return "Dec(" + str(self.vars) + "," + str(self.typs) + "," + str(self.exps) + ")"
+        return "Dec(" + str(self.var) + "," + str(self.type) + "," + str(self.exp) + ")"
 		
+    def eval(self):
+        if self.exp != "input":
+            if self.type != 'table':
+                return 'variable["' + self.var.atom + '"] = ' + self.exp.eval() + ";"
+            elif self.type == 'table':
+                aux = []
+                for col in self.exp.col:
+                    tmp = "for (i = 0 ; i < " + str(self.exp.tam.atom) + " ; i++) {"
+                    tmp = tmp + '\n\t' + AccTab(self.var,col,Num('i')).eval() + ' = '
+                    if col.exp != "input":
+                        tmp = tmp + col.exp.eval() + ";" #esto no se puede hay columnas y variables
+                    else:
+                        if col.type == 'int':
+                            tmp = tmp + 'parseInt(document.getElementById("sel_' + self.var.atom + '_"+ i +"_' + col.var.atom + '").value);'
+                        elif col.type == 'string':
+                            tmp = tmp + 'document.getElementById("sel_' + self.var.atom + '_i_' + col.var.atom + '").value;'
+                    tmp = tmp + "\n}"
+                    print tmp
+                    aux.append(tmp)
+                return aux
+        else:
+            if self.type == 'int':	
+                return self.var.eval() + ' = parseInt(document.getElementById("sel_' + self.var.atom + '").value);'
+            elif self.type == 'string':
+                return self.var.eval() + ' = document.getElementById("sel_' + self.var.atom + '").value;'
+
 class Expresion: pass
 
 class BinOp(Expresion):
@@ -155,63 +180,109 @@ class BinOp(Expresion):
 class Suma(BinOp):
     def __str__(self):
         return "Suma(" + str(self.op1) + "," + str(self.op2) + ")"
+	
+    def eval(self):
+        return "(" + self.op1.eval() + " + " + self.op2.eval() + ")"
 
 class Resta(BinOp):
     def __str__(self):
         return "Resta(" + str(self.op1) + "," + str(self.op2) + ")"
 
+    def eval(self):
+        return "(" + self.op1.eval() + " - " + self.op2.eval() + ")"		
+
 class Producto(BinOp):
     def __str__(self):
         return "Producto(" + str(self.op1) + "," + str(self.op2) + ")"
+
+    def eval(self):
+        return "(" + self.op1.eval() + " * " + self.op2.eval() + ")"		
 
 class Division(BinOp):
     def __str__(self):
         return "Division(" + str(self.op1) + "," + str(self.op2) + ")"
 
+    def eval(self):
+        return "(" + self.op1.eval() + " / " + self.op2.eval() + ")"		
+
 class Mod(BinOp):
     def __str__(self):
         return "Mod(" + str(self.op1) + "," + str(self.op2) + ")"
 
+    def eval(self):
+        return "(" + self.op1.eval() + " % " + self.op2.eval() + ")"
+
 class Potencia(BinOp):
     def __str__(self):
         return "Potencia(" + str(self.op1) + "," + str(self.op2) + ")"
+		
+    def eval(self):
+        return "Math.pow(" + self.op1.eval() + "," + self.op2.eval() + ")"
 
 class Fby(BinOp):
     def __str__(self):
         return "Fby(" + str(self.op1) + "," + str(self.op2) + ")"
+		
+class TbyOp(BinOp):
+    def __str__(self):
+        return  "TbyOp(" + str(self.op1) + "," + str(self.op2) + ")"
 
 class And(BinOp):
     def __str__(self):
         return "And(" + str(self.op1) + "," + str(self.op2) + ")"
+		
+    def eval(self):
+        return "(" + self.op1.eval() + " && " + self.op2.eval() + ")"
 
 class Or(BinOp):
     def __str__(self):
         return "Or(" + str(self.op1) + "," + str(self.op2) + ")"
+		
+    def eval(self):
+        return "(" + self.op1.eval() + " || " + self.op2.eval() + ")"
 
 class MayorQue(BinOp):
     def __str__(self):
         return "MayorQue(" + str(self.op1) + "," + str(self.op2) + ")"
 
+    def eval(self):
+        return "(" + self.op1.eval() + " > " + self.op2.eval() + ")"
+
 class MenorQue(BinOp):
     def __str__(self):
         return "MenorQue(" + str(self.op1) + "," + str(self.op2) + ")"
 
+    def eval(self):
+        return "(" + self.op1.eval() + " < " + self.op2.eval() + ")"		
+		
 class MayorIgualQue(BinOp):
     def __str__(self):
         return "MayorIgualQue(" + str(self.op1) + "," + str(self.op2) + ")"
 
+    def eval(self):
+        return "(" + self.op1.eval() + " >= " + self.op2.eval() + ")"		
+		
 class MenorIgualQue(BinOp):
     def __str__(self):
         return "MenorIgualQue(" + str(self.op1) + "," + str(self.op2) + ")"
 
+    def eval(self):
+        return "(" + self.op1.eval() + " <= " + self.op2.eval() + ")"		
+		
 class Igual(BinOp):
     def __str__(self):
         return "Igual(" + str(self.op1) + "," + str(self.op2) + ")"
+		
+    def eval(self):
+        return "(" + self.op1.eval() + " == " + self.op2.eval() + ")"
     
 class Distinto(BinOp):
     def __str__(self):
         return "Distinto(" + str(self.op1) + "," + str(self.op2) + ")"    
 
+    def eval(self):
+        return "(" + self.op1.eval() + " != " + self.op2.eval() + ")"		
+		
 class UnOp(Expresion):
     def __init__(self,op):
         self.op = op
@@ -219,15 +290,17 @@ class UnOp(Expresion):
 class Neg(UnOp):
     def __str__(self):
         return "Neg(" + str(self.op) +")"
+		
+    def eval(self):
+        return "!(" + self.op.eval() + ")"
 
 class Min(UnOp):
     def __str__(self):
         return "Min(" + str(self.op) +")"    
 
-class TbyOp(BinOp):
-    def __str__(self):
-        return  "TbyOp(" + str(self.op1) + "," + str(self.op2) + ")"
-
+    def eval(self):
+        return "-(" + self.op.eval() + ")"		
+		
 class IfExp(Expresion):
     def __init__(self,cond,exp1,exp2):
         self.cond = cond
@@ -236,6 +309,9 @@ class IfExp(Expresion):
         
     def __str__(self):
         return  "IfExp(" + str(self.cond) + "," + str(self.exp1) + "," + str(self.exp2) + ")"
+		
+    def eval(self):
+        return "(" + self.cond.eval() + "?" + self.exp1.eval() + ":" + self.exp2.eval() + ")"
 
 class AccList(Expresion):
     def __init__(self,var,index):
@@ -244,6 +320,9 @@ class AccList(Expresion):
 
     def __str__(self):
         return "AccList(" + str(self.var) + "," + str(self.index) + ")"
+	
+#    def eval(self):
+#        return 'variables["' + self.var.eval() + "][" + self.index.eval() + "]"
 
 class AccTab(Expresion):
     def __init__(self,var,col,index):
@@ -253,6 +332,9 @@ class AccTab(Expresion):
 
     def __str__(self):
         return "AccTab(" + str(self.var) + "," + self.col + "," + str(self.index) + ")"
+	    
+    def eval(self):
+        return 'variables["' + self.var.atom + '"][' + self.index.eval() + "]." + self.col.var.atom
 
 class Tabla(Expresion):
     def __init__(self,tam,col):
@@ -284,12 +366,25 @@ class Range(Expresion):
     def __str__(self):
         return "Range(" + str(self.ini) + "," + str(self.fin) + ")"
 
+    def eval(self):
+        aux = '['
+
+        if self.ini.atom < self.fin.atom:
+            for i in range(self.ini.atom, self.fin.atom + 1):
+                aux = aux + str(i) + ','
+            aux = aux[:-1]
+
+        return aux + ']'
+
 class Len(Expresion):
     def __init__(self,var):
         self.var = var
 
     def __str__(self):
         return "Len(" + str(self.var) + ")"
+
+    def eval(self):
+        return "length." + self.var.eval()
 
 class Cuant(Expresion):
     def __init__(self,op,var,list,exp):
@@ -300,7 +395,7 @@ class Cuant(Expresion):
 
     def __str__(self):
         return "Cuant(" + str(self.op) + "," + str(self.var) + "," + str(self.list) + "," + str(self.exp) + ")"
-
+		
 class List(Expresion):
     def __init__(self,list):
         self.list =  list
@@ -311,34 +406,48 @@ class List(Expresion):
             aux = aux + str(exp) + ','
         aux = aux[:-1] + ']'
 
-        return "List(" + aux + ")"        
+        return "List(" + aux + ")" 
 
-class Num(Expresion):
-    def __init__(self,num):
-        self.num= num
-    
+    def eval(self):
+        aux = '['
+		
+        for exp in self.list:
+            aux = aux + exp.eval() + ','
+        aux = aux[:-1] + ']'
+		
+        return aux
+
+class Atom(Expresion):
+    def __init__(self,atom):
+        self.atom = atom
+
+class Num(Atom):
     def __str__(self):
-        return "Num("+ str(self.num) +")"
+        return "Num("+ str(self.atom) +")"
 
-class Var(Expresion):
-    def __init__(self,var):
-        self.var=var
+    def eval(self):
+        return str(self.atom)
 
+class Var(Atom):
     def __str__(self):
-        return "Var("+self.var+ ")"
+        return "Var("+ self.atom + ")"
+		
+    def eval(self):
+        return 'variables["' + self.atom + '"]'
 
-#class Input(Expresion):
-            
-        
 ############################################################################
 #########            PRODUCCIONES DE LA GRAMATICA                 ##########
 ############################################################################
 
+nro = 0
+table = {}
+nombres = {}# Diccionario para la tabla de simbolos 
+
 def p_program_dec(p):
     '''program : EQ declaraciones
                | declaraciones'''
-    
-    nombres={} # Diccionario para la tabla de simbolos 
+
+    nombres={}
     
     if len(p) == 3:
         p[2][2].reverse()
@@ -349,10 +458,10 @@ def p_program_dec(p):
                 col = p[2][2][i].col
                 simb_tabletype = {}
                 for c in col:
-                    simb_tabletype[c.var.var] = (c.type,c.exp)
-                nombres[var.var] = (p[2][1][i],simb_tabletype)    
+                    simb_tabletype[c.var.atom] = (c.type,c.exp)
+                nombres[var.atom] = (p[2][1][i],simb_tabletype)    
             else:
-                nombres[var.var] = (p[2][1][i],p[2][2][i])
+                nombres[var.atom] = (p[2][1][i],p[2][2][i])
         p[0] = (Salida(aux),nombres)
     else:
         p[1][2].reverse()
@@ -363,16 +472,21 @@ def p_program_dec(p):
                 col = p[1][2][i].col
                 simb_tabletype = {}
                 for c in col:
-                    simb_tabletype[c.var.var] = (c.type,c.exp)
-                nombres[var.var] = (p[1][1][i],simb_tabletype)    
+                    simb_tabletype[c.var.atom] = (c.type,c.exp)
+                nombres[var.atom] = (p[1][1][i],simb_tabletype)    
             else:
-                nombres[var.var] = (p[1][1][i],p[1][2][i])	
+                nombres[var.atom] = (p[1][1][i],p[1][2][i])	
         p[0] = (NoSalida(aux),nombres)
        
 def p_program_exp(p):
-    'program : EQ expresion'
-    p[0] = (SalidaExpresion(p[2]),{})
-    
+    '''program : EQ expresion
+               | expresion'''
+	
+    if len(p) == 3:
+		p[0] = (SalidaExpresion(p[2]),{})
+    else:
+		p[0] = (NoSalidaExpresion(p[1]),{})
+		
 def p_empty(p):
     'empty :'
     p[0] = ''
@@ -612,3 +726,4 @@ def p_typ(p):
 
 def p_error(p):
     print "Syntax error in input! %r" % p.value
+    exit(1)
