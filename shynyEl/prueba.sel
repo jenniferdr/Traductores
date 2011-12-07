@@ -1,0 +1,27 @@
+<!-- Ejemplo de programa en SEL -->
+<html>
+    <head>
+        <title> Prueba </title>
+    </head>
+
+    <body>
+        <p>Hola.</p>
+
+        {%= x : int, y : int := input, range(2,3) %}
+
+        <hr />
+
+        {%= tab : table := new table[4] where
+                  a : int := input;
+                  b : int := a * z
+         %}
+
+        <hr />
+
+        {%= w : int := x + 1 %}
+
+        {% z : int := (x + y) / 2 %}
+
+    </body>
+
+</html>
