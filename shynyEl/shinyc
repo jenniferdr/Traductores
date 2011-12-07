@@ -149,7 +149,7 @@ for table in tables:
                 recorrer(var+ "." + varT,table[var][1][varT][1])
         else:
             recorrer(var,table[var][1])
-			
+		
 #print lexer_parser.table
 
 #print lexer_parser.Dec("a","int",lexer_parser.Num(1)).eval()
