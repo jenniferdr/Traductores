@@ -170,10 +170,13 @@ class Dec:
             elif self.type == 'string':
                 return self.var.eval() + ' = document.getElementById("sel_' + self.var.atom + '").value;'
 
-class Expresion: pass
+class Expresion:
+    def __init__(self,tipo=None):
+        self.tipo= tipo
 
 class BinOp(Expresion):
     def __init__(self,op1,op2):
+        Expresion.__init__(self)
         self.op1 = op1
         self.op2 = op2
 
@@ -226,57 +229,61 @@ class Fby(BinOp):
 class TbyOp(BinOp):
     def __str__(self):
         return  "TbyOp(" + str(self.op1) + "," + str(self.op2) + ")"
-
-class And(BinOp):
+class OpBool(BinOp):
+    pass
+class And(OpBool):
     def __str__(self):
         return "And(" + str(self.op1) + "," + str(self.op2) + ")"
 		
     def eval(self):
         return "(" + self.op1.eval() + " && " + self.op2.eval() + ")"
 
-class Or(BinOp):
+class Or(OpBool):
     def __str__(self):
         return "Or(" + str(self.op1) + "," + str(self.op2) + ")"
 		
     def eval(self):
         return "(" + self.op1.eval() + " || " + self.op2.eval() + ")"
 
-class MayorQue(BinOp):
+class Comparacion(BinOp):
+    pass
+
+class MayorQue(Comparacion):
     def __str__(self):
         return "MayorQue(" + str(self.op1) + "," + str(self.op2) + ")"
 
     def eval(self):
         return "(" + self.op1.eval() + " > " + self.op2.eval() + ")"
 
-class MenorQue(BinOp):
+class MenorQue(Comparacion):
     def __str__(self):
         return "MenorQue(" + str(self.op1) + "," + str(self.op2) + ")"
 
     def eval(self):
         return "(" + self.op1.eval() + " < " + self.op2.eval() + ")"		
 		
-class MayorIgualQue(BinOp):
+class MayorIgualQue(Comparacion):
     def __str__(self):
         return "MayorIgualQue(" + str(self.op1) + "," + str(self.op2) + ")"
 
     def eval(self):
         return "(" + self.op1.eval() + " >= " + self.op2.eval() + ")"		
 		
-class MenorIgualQue(BinOp):
+class MenorIgualQue(Comparacion):
     def __str__(self):
         return "MenorIgualQue(" + str(self.op1) + "," + str(self.op2) + ")"
 
     def eval(self):
         return "(" + self.op1.eval() + " <= " + self.op2.eval() + ")"		
 		
-class Igual(BinOp):
+class Igual(Comparacion):
     def __str__(self):
         return "Igual(" + str(self.op1) + "," + str(self.op2) + ")"
 		
     def eval(self):
         return "(" + self.op1.eval() + " == " + self.op2.eval() + ")"
     
-class Distinto(BinOp):
+class Distinto(Comparacion):
     def __str__(self):
         return "Distinto(" + str(self.op1) + "," + str(self.op2) + ")"    
 
@@ -285,6 +292,7 @@ class Distinto(BinOp):
 		
 class UnOp(Expresion):
     def __init__(self,op):
+        Expresion.__init__(self)
         self.op = op
 
 class Neg(UnOp):
@@ -303,6 +311,7 @@ class Min(UnOp):
 		
 class IfExp(Expresion):
     def __init__(self,cond,exp1,exp2):
+        Expresion.__init__(self)
         self.cond = cond
         self.exp1 = exp1
         self.exp2 = exp2
@@ -315,6 +324,7 @@ class IfExp(Expresion):
 
 class AccList(Expresion):
     def __init__(self,var,index):
+        Expresion.__init__(self)
         self.var = var
         self.index = index
 
@@ -326,6 +336,7 @@ class AccList(Expresion):
 
 class AccTab(Expresion):
     def __init__(self,var,col,index):
+        Expresion.__init__(self)
         self.var = var
         self.col = col
         self.index = index
@@ -338,6 +349,7 @@ class AccTab(Expresion):
 
 class Tabla(Expresion):
     def __init__(self,tam,col):
+        Expresion.__init__(self)
         self.tam = tam
         self.col = col
 
@@ -350,9 +362,12 @@ class Tabla(Expresion):
         return "Tabla(" + str(self.tam) + "," + aux + ")"
 
 class ColTabla:
-    def __init__(self,var,type,exp):
+    def __init__(self,var,type,exp,tipo=None):
         self.var = var
+        # tipo por definicion
         self.type = type
+        # tipo inferido de la expresion 
+        self.tipo = tipo
         self.exp = exp
 
     def __str__(self):
@@ -360,6 +375,7 @@ class ColTabla:
 
 class Range(Expresion):
     def __init__(self,ini,fin):
+        Expresion.__init__(self)
         self.ini = ini
         self.fin = fin
 
@@ -378,6 +394,7 @@ class Range(Expresion):
 
 class Len(Expresion):
     def __init__(self,var):
+        Expresion.__init__(self)
         self.var = var
 
     def __str__(self):
@@ -388,6 +405,7 @@ class Len(Expresion):
 
 class Cuant(Expresion):
     def __init__(self,op,var,list,exp):
+        Expresion.__init__(self)
         self.op = op
         self.var = var
         self.list = list
@@ -398,6 +416,7 @@ class Cuant(Expresion):
 		
 class List(Expresion):
     def __init__(self,list):
+        Expresion.__init__(self)
         self.list =  list
 
     def __str__(self):
@@ -430,7 +449,7 @@ class Num:
 class Var:
     def __init__(self,var,var_tab):
         self.var = var
-		self.var_tab = True
+		self.var_tab = var_tab
 		
     def __str__(self):
         return "Var("+ self.atom + ")"
@@ -442,14 +461,11 @@ class Var:
 #########            PRODUCCIONES DE LA GRAMATICA                 ##########
 ############################################################################
 
-nro = 0
-table = {}
-nombres = {}# Diccionario para la tabla de simbolos 
-
 def p_program_dec(p):
     '''program : EQ declaraciones
                | declaraciones'''
 
+    # Tabla de simbolos para el tag de shiny 
     nombres={}
     
     if len(p) == 3:
