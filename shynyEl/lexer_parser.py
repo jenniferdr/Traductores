@@ -417,18 +417,21 @@ class List(Expresion):
 		
         return aux
 
-class Atom(Expresion):
-    def __init__(self,atom):
-        self.atom = atom
+class Num:
+    def __init__(self,num):
+        self.num = num
 
-class Num(Atom):
     def __str__(self):
         return "Num("+ str(self.atom) +")"
 
     def eval(self):
         return str(self.atom)
 
-class Var(Atom):
+class Var:
+    def __init__(self,var,var_tab):
+        self.var = var
+		self.var_tab = True
+		
     def __str__(self):
         return "Var("+ self.atom + ")"
 		
