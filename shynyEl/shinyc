@@ -19,6 +19,7 @@ import ply.lex as lex
 import ply.yacc as yacc
 import networkx as nx
 #import matplotlib.pyplot as plt
+import copy
 import sys
 import os
 
@@ -46,43 +47,45 @@ import os
 # de la expresion expr hasta la variable var en el grafo declarado como
 # variable global GD (Grafo de dependencias). 
 def recorrer(var,expr):
+    global nro
     if isinstance(expr,lexer_parser.BinOp):
         # op1 opBinnario op2
         recorrer(var,expr.op1)
         recorrer(var,expr.op2)
-        calcularTipoOpBin(expr,expr.op1,expr.op2)
+        #calcularTipoOpBin(expr,expr.op1,expr.op2)
     elif isinstance(expr,lexer_parser.UnOp):
         # opUnario(op)
         recorrer(var,expr.op)
-        calcularTipoUnOp(expr,expr.op)
+        #calcularTipoUnOp(expr,expr.op)
     elif isinstance(expr,lexer_parser.IfExp):
         # Expresion IF cond THEN expr1 ELSE expr2 
         # Como sabemos de cual expresion depende? 
         recorrer(var,expr.cond)
         recorrer(var,expr.exp1)
         recorrer(var,expr.exp2)
-        calcularTipoIfThenElse(expr,expr.cond,expr.exp1,expr.exp2)
+        #calcularTipoIfThenElse(expr,expr.cond,expr.exp1,expr.exp2)
     elif isinstance(expr,lexer_parser.AccList):
         # Acceso a lista: var[index]
         # Como sabemos que si se cambia un elemento cualquiera 
         # de la lista var por otro lado, afecta a esta expresion?
         recorrer(var,expr.index)
         recorrer(var,expr.var)
-        calcularTipoAccList(expr,expr.index,expr.var)
+        #calcularTipoAccList(expr,expr.index,expr.var)
     elif isinstance(expr,lexer_parser.AccTab):
         # Acceso a tabla: var[index].var
         recorrer(var,expr.index)
         recorrer(var,expr.var)
-        calcularTipoAccTab(expr,expr.index,expr.var) 
+        #calcularTipoAccTab(expr,expr.index,expr.var) 
     elif isinstance(expr,lexer_parser.Range):
         # Funcion range(ini,fin)
         recorrer(var,expr.ini)
         recorrer(var,expr.fin)
-        calcularTipoRange(expr,expr.ini,expr.fin)
+        #calcularTipoRange(expr,expr.ini,expr.fin)
     elif isinstance(expr,lexer_parser.Len):
         # Funcion Len(var)
         recorrer(var,expr.var)
-        calcularTipoLen(expr.var)
+
+        #calcularTipoLen(expr.var)
     elif isinstance(expr,lexer_parser.List):
         # Recorrer cada elemento de la lista
         for elem in (expr.list):
@@ -91,27 +94,26 @@ def recorrer(var,expr):
         # Cuantificador: [% var: L : exp %]
         recorrer(var,expr.exp)
         recorrer(var,expr.list)
-        if (expr.op==''):
-            calcularTipoLista()
-        else:
-            calcularTipoCuant()
+        #if (expr.op==''):
+         #   calcularTipoLista()
+        #else:
+          #  calcularTipoCuant()
 
         GD.remove_node(var)
     elif isinstance(expr,lexer_parser.Var):
         # Caso base: expr es una variable
-        if(contextTabla):
+        if(contexTabla):
             if(expr.var in diccTabla):
                 tabla=nombreTabla
                 GD.add_edge(tabla+"."+expr.var,var)
             else:
-                GD.add_edge(expr.atom,var)
+                GD.add_edge(expr.var,var)
 
     elif expr == 'input':
-        i = lexer_parser.nro
-        i = i + 1
-        lexer_parser.table['_e' + str(i)] = ('',expr)
-        GD.add_edge('_e' + str(i),var)
-        lexer_parser.nro = i
+        
+        table['_e' + str(nro+1)] = ('',expr)
+        GD.add_edge('_e' + str(nro+1),var)
+        nro= nro+1
 
 
 ###########################################################################
@@ -171,7 +173,7 @@ while True:
         tables.append(result[1])
         
         if isinstance(result[0],lexer_parser.SalidaExpresion):
-		    nro += 1
+		    nro = nro + 1
 		    table['_e' + str(nro)] = ('',result[0].exp)
 
 file_e.close()
@@ -188,7 +190,7 @@ for tab in tables:
             os.remove(salida)
             error= True
         table[var]= tab[var]
- if(error): exit(1)           
+if(error): exit(1)           
 
 #######################################
 ###  Crear grafo de dependencias   ####
@@ -208,10 +210,10 @@ contexTabla= False
 global diccTabla
 global nombreTabla
 
-for var in table:
+for var in table.copy():
     # Si el tipo de la variable es 'table'
     if table[var][0]=="table":
-        contextTabla=True
+        contexTabla=True
         diccTabla= table[var][1]
         nombreTabla= var
         for varT in table[var][1].keys():	
@@ -219,7 +221,7 @@ for var in table:
     else:
         recorrer(var,table[var][1])
 		
-#print lexer_parser.table
+print table
 
 #print lexer_parser.Dec("a","int",lexer_parser.Num(1)).eval()
 			
