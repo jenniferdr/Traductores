@@ -229,57 +229,61 @@ class Fby(BinOp):
 class TbyOp(BinOp):
     def __str__(self):
         return  "TbyOp(" + str(self.op1) + "," + str(self.op2) + ")"
-
-class And(BinOp):
+class OpBool(BinOp):
+    pass
+class And(OpBool):
     def __str__(self):
         return "And(" + str(self.op1) + "," + str(self.op2) + ")"
 		
     def eval(self):
         return "(" + self.op1.eval() + " && " + self.op2.eval() + ")"
 
-class Or(BinOp):
+class Or(OpBool):
     def __str__(self):
         return "Or(" + str(self.op1) + "," + str(self.op2) + ")"
 		
     def eval(self):
         return "(" + self.op1.eval() + " || " + self.op2.eval() + ")"
 
-class MayorQue(BinOp):
+class Comparacion(BinOp):
+    pass
+
+class MayorQue(Comparacion):
     def __str__(self):
         return "MayorQue(" + str(self.op1) + "," + str(self.op2) + ")"
 
     def eval(self):
         return "(" + self.op1.eval() + " > " + self.op2.eval() + ")"
 
-class MenorQue(BinOp):
+class MenorQue(Comparacion):
     def __str__(self):
         return "MenorQue(" + str(self.op1) + "," + str(self.op2) + ")"
 
     def eval(self):
         return "(" + self.op1.eval() + " < " + self.op2.eval() + ")"		
 		
-class MayorIgualQue(BinOp):
+class MayorIgualQue(Comparacion):
     def __str__(self):
         return "MayorIgualQue(" + str(self.op1) + "," + str(self.op2) + ")"
 
     def eval(self):
         return "(" + self.op1.eval() + " >= " + self.op2.eval() + ")"		
 		
-class MenorIgualQue(BinOp):
+class MenorIgualQue(Comparacion):
     def __str__(self):
         return "MenorIgualQue(" + str(self.op1) + "," + str(self.op2) + ")"
 
     def eval(self):
         return "(" + self.op1.eval() + " <= " + self.op2.eval() + ")"		
 		
-class Igual(BinOp):
+class Igual(Comparacion):
     def __str__(self):
         return "Igual(" + str(self.op1) + "," + str(self.op2) + ")"
 		
     def eval(self):
         return "(" + self.op1.eval() + " == " + self.op2.eval() + ")"
     
-class Distinto(BinOp):
+class Distinto(Comparacion):
     def __str__(self):
         return "Distinto(" + str(self.op1) + "," + str(self.op2) + ")"    
 
@@ -456,14 +460,11 @@ class Var(Atom):
 #########            PRODUCCIONES DE LA GRAMATICA                 ##########
 ############################################################################
 
-nro = 0
-table = {}
-nombres = {}# Diccionario para la tabla de simbolos 
-
 def p_program_dec(p):
     '''program : EQ declaraciones
                | declaraciones'''
 
+    # Tabla de simbolos para el tag de shiny 
     nombres={}
     
     if len(p) == 3:
