@@ -49,6 +49,7 @@ def recorrer(var,expr):
     elif isinstance(expr,lexer_parser.AccTab):
         # Acceso a tabla: var[index].var
         recorrer(var,expr.index)
+        recorrer(var,expr.var)
         # Como hago con var[i].var, saber cuanto es i
         # para poder agregarlo al grafo.? 
     elif isinstance(expr,lexer_parser.Range):

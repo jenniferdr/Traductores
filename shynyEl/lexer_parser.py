@@ -170,10 +170,13 @@ class Dec:
             elif self.type == 'string':
                 return self.var.eval() + ' = document.getElementById("sel_' + self.var.atom + '").value;'
 
-class Expresion: pass
+class Expresion:
+    def __init__(self,tipo=None):
+        self.tipo= tipo
 
 class BinOp(Expresion):
     def __init__(self,op1,op2):
+        Expresion.__init__(self)
         self.op1 = op1
         self.op2 = op2
 
@@ -285,6 +288,7 @@ class Distinto(BinOp):
 		
 class UnOp(Expresion):
     def __init__(self,op):
+        Expresion.__init__(self)
         self.op = op
 
 class Neg(UnOp):
@@ -303,6 +307,7 @@ class Min(UnOp):
 		
 class IfExp(Expresion):
     def __init__(self,cond,exp1,exp2):
+        Expresion.__init__(self)
         self.cond = cond
         self.exp1 = exp1
         self.exp2 = exp2
@@ -315,6 +320,7 @@ class IfExp(Expresion):
 
 class AccList(Expresion):
     def __init__(self,var,index):
+        Expresion.__init__(self)
         self.var = var
         self.index = index
 
@@ -326,6 +332,7 @@ class AccList(Expresion):
 
 class AccTab(Expresion):
     def __init__(self,var,col,index):
+        Expresion.__init__(self)
         self.var = var
         self.col = col
         self.index = index
@@ -338,6 +345,7 @@ class AccTab(Expresion):
 
 class Tabla(Expresion):
     def __init__(self,tam,col):
+        Expresion.__init__(self)
         self.tam = tam
         self.col = col
 
@@ -350,9 +358,12 @@ class Tabla(Expresion):
         return "Tabla(" + str(self.tam) + "," + aux + ")"
 
 class ColTabla:
-    def __init__(self,var,type,exp):
+    def __init__(self,var,type,exp,tipo=None):
         self.var = var
+        # tipo por definicion
         self.type = type
+        # tipo inferido de la expresion 
+        self.tipo = tipo
         self.exp = exp
 
     def __str__(self):
@@ -360,6 +371,7 @@ class ColTabla:
 
 class Range(Expresion):
     def __init__(self,ini,fin):
+        Expresion.__init__(self)
         self.ini = ini
         self.fin = fin
 
@@ -378,6 +390,7 @@ class Range(Expresion):
 
 class Len(Expresion):
     def __init__(self,var):
+        Expresion.__init__(self)
         self.var = var
 
     def __str__(self):
@@ -388,6 +401,7 @@ class Len(Expresion):
 
 class Cuant(Expresion):
     def __init__(self,op,var,list,exp):
+        Expresion.__init__(self)
         self.op = op
         self.var = var
         self.list = list
@@ -398,6 +412,7 @@ class Cuant(Expresion):
 		
 class List(Expresion):
     def __init__(self,list):
+        Expresion.__init__(self)
         self.list =  list
 
     def __str__(self):
@@ -419,7 +434,9 @@ class List(Expresion):
 
 class Atom(Expresion):
     def __init__(self,atom):
+        Expresion.__init__(self)
         self.atom = atom
+        
 
 class Num(Atom):
     def __str__(self):
