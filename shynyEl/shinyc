@@ -23,24 +23,53 @@ import copy
 import sys
 import os
 
-# # def calcularTipoOpBin(expr,expr1,expr2):
+def calcularTipoOpBin(expr,expr1,expr2):
 
-    # # if isinstance(expr,lexer_parser.Suma):
-        # int int string string list of in o string
-    # # elif isinstance(expr,lexer_parser.Resta):
-    # int int -> int
-    # # elif isinstance(expr,lexer_parser.Producto)
-    # int int ->int
-    # # elif isinstance(expr,lexer_parser.Division)
-    # int int(diferente de cero) int
-    # # elif isinstance(expr,lexer_parser.Mod)
-    # int int int
-    # # elif isinstance(expr,lexer_parser.Potencia)
-    # int int int
-    # # elif isinstance(expr,lexer_parser.OpBool)
-    # bool bool bool
-    # # elif isinstance(expr,lexer_parser.Comparacion)
-    # int int bool
+    if isinstance(expr,lexer_parser.Suma):
+        if expr1.tipo==expr2.tipo:
+            expr.tipo= expr1.tipo
+        else:
+            expr.tipo="tipo_error"
+    elif isinstance(expr,lexer_parser.Resta):
+        if expr1.tipo=="int" & expr2.tipo=="int":
+            expr.tipo="int"
+        else:
+            expr.tipo="tipo_error"
+    elif isinstance(expr,lexer_parser.Producto)
+        if expr1.tipo=="int" & expr2.tipo=="int":
+            expr.tipo="int"
+        else:
+            expr.tipo="tipo_error"
+   
+    elif isinstance(expr,lexer_parser.Division):
+        if expr1.tipo=="int" & expr2.tipo=="int":
+            expr.tipo="int"
+        else:
+            expr.tipo="tipo_error"
+            
+    elif isinstance(expr,lexer_parser.Mod):
+        if expr1.tipo=="int" & expr2.tipo=="int":
+            expr.tipo="int"
+        else:
+            expr.tipo="tipo_error"
+
+    elif isinstance(expr,lexer_parser.Potencia):
+        if expr1.tipo=="int" & expr2.tipo=="int":
+            expr.tipo="int"
+        else:
+            expr.tipo="tipo_error"
+            
+    elif isinstance(expr,lexer_parser.OpBool):
+        if expr1.tipo=="bool" & expr2.tipo=="bool":
+            expr.tipo="bool"
+        else:
+            expr.tipo="tipo_error"
+            
+    elif isinstance(expr,lexer_parser.Comparacion):
+        if expr1.tipo=="int" & expr2.tipo=="int":
+            expr.tipo=="bool"
+        else:
+            expr.tipo="tipo_error"
     
 def calcularTipoLista(lista):
     if (length(lista)==0):
@@ -55,6 +84,18 @@ def calcularTipoLista(lista):
         else:
             return "tipo_error"
         
+def calcularTipoUnOp(expresion,operando):
+    if isinstance(operando,Neg):
+        if operando.tipo=="bool":
+            expresion.tipo="bool"
+        else:
+            expresion.tipo="tipo_error"
+    else:
+        if operando.tipo=="int":
+            expresion.tipo="int"
+        else:
+            expresion.tipo="int"
+            
 # Funcion que recibe el nombre de una variable var y una expresion expr.
 # Va anadiendo arcos que van desde las variables que se encuentran dentro
 # de la expresion expr hasta la variable var en el grafo declarado como
@@ -69,7 +110,7 @@ def recorrer(var,expr):
     elif isinstance(expr,lexer_parser.UnOp):
         # opUnario(op)
         recorrer(var,expr.op)
-        #calcularTipoUnOp(expr,expr.op)
+        calcularTipoUnOp(expr,expr.op)
     elif isinstance(expr,lexer_parser.IfExp):
         # Expresion IF cond THEN expr1 ELSE expr2  
         recorrer(var,expr.cond)
