@@ -18,7 +18,7 @@ import lexer_parser
 import ply.lex as lex
 import ply.yacc as yacc
 import networkx as nx
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import copy
 import sys
 import os
@@ -109,8 +109,7 @@ def recorrer(var,expr):
             else:
                 GD.add_edge(expr.var,var)
 
-    elif expr == 'input':
-        
+    elif expr == 'input':       
         table['_e' + str(nro+1)] = ('',expr)
         GD.add_edge('_e' + str(nro+1),var)
         nro= nro+1
