@@ -434,8 +434,9 @@ class List(Expresion):
 		
         return aux
 
-class Num:
+class Num(Expresion):
     def __init__(self,num):
+        Expresion.__init__(self)
         self.num = num
 
     def __str__(self):
@@ -444,8 +445,21 @@ class Num:
     def eval(self):
         return str(self.num)
 
-class Var:
+class String(Expresion):
+    def __init__(self,string):
+        Expresion.__init__(self)
+        self.string = string
+
+    def __str__(self):
+        return "String("+ self.string +")"
+
+    def eval(self):
+        return self.string
+
+    
+class Var(Expresion):
     def __init__(self,var,var_tab):
+        Expresion.__init__(self)
         self.var = var
         self.var_tab = var_tab
 		
@@ -597,6 +611,8 @@ def p_aux_2(p):
         p[0] = Min(p[2])
     elif isinstance(p[1],int):
         p[0]= Num(p[1])
+    elif isinstance(p[1],str):
+        p[0]= String(p[1])
     else:
         p[0] = p[1]
 

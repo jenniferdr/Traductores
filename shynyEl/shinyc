@@ -41,7 +41,20 @@ import os
     # bool bool bool
     # # elif isinstance(expr,lexer_parser.Comparacion)
     # int int bool
-
+    
+def calcularTipoLista(lista):
+    if (length(lista)==0):
+        return "list of"
+    else:
+        type= lista[1].tipo
+        t= True
+        for elem in lista:
+            t= (type==elem.tipo) & t
+        if (t):
+            return "list of "+type
+        else:
+            return "tipo_error"
+        
 # Funcion que recibe el nombre de una variable var y una expresion expr.
 # Va anadiendo arcos que van desde las variables que se encuentran dentro
 # de la expresion expr hasta la variable var en el grafo declarado como
@@ -58,42 +71,56 @@ def recorrer(var,expr):
         recorrer(var,expr.op)
         #calcularTipoUnOp(expr,expr.op)
     elif isinstance(expr,lexer_parser.IfExp):
-        # Expresion IF cond THEN expr1 ELSE expr2 
-        # Como sabemos de cual expresion depende? 
+        # Expresion IF cond THEN expr1 ELSE expr2  
         recorrer(var,expr.cond)
         recorrer(var,expr.exp1)
         recorrer(var,expr.exp2)
-        #calcularTipoIfThenElse(expr,expr.cond,expr.exp1,expr.exp2)
+        if (expr.cond.tipo=="bool") & (expr.expr1.tipo==expr.expr2.tipo):
+            expr.tipo=expr.expr1.tipo
+        else:
+            expr.tipo="tipo_error"
     elif isinstance(expr,lexer_parser.AccList):
         # Acceso a lista: var[index]
-        # Como sabemos que si se cambia un elemento cualquiera 
-        # de la lista var por otro lado, afecta a esta expresion?
         recorrer(var,expr.index)
         recorrer(var,expr.var)
-        #calcularTipoAccList(expr,expr.index,expr.var)
+        if (expr.var.tipo=="list of int") & (expr.index.tipo=="int"):
+            expr.tipo="int"
+        elif (expr.var.tipo=="list of string") & (expr.index.tipo=="int"):
+            expr.tipo="string"
+        else:
+            expr.tipo="tipo_error"
     elif isinstance(expr,lexer_parser.AccTab):
-        # Acceso a tabla: var[index].var
+        # Acceso a tabla: var[index].col
         recorrer(var,expr.index)
         recorrer(var,expr.var)
-        #calcularTipoAccTab(expr,expr.index,expr.var) 
+        if (expr.index.tipo=="int") & (expr.var.tipo=="table"):
+            expr.tipo=expr.col.tipo
+        else:
+            expr.tipo="tipo_error"
     elif isinstance(expr,lexer_parser.Range):
         # Funcion range(ini,fin)
         recorrer(var,expr.ini)
         recorrer(var,expr.fin)
-        #calcularTipoRange(expr,expr.ini,expr.fin)
+        if (expr.ini.tipo=="int") & (expr.fin.tipo=="int"):
+            expr.tipo="list of int"
+        else:
+            expr.tipo="tipo_error"
     elif isinstance(expr,lexer_parser.Len):
         # Funcion Len(var)
         recorrer(var,expr.var)
-
-        #calcularTipoLen(expr.var)
+        if (expr.var.tipo == "list of int") | (expr.var.tipo=="list of string")|(expr.var.tipo=="list of"):
+            expr.tipo="int"
+        else:
+            expr.tipo= "tipo_error"
     elif isinstance(expr,lexer_parser.List):
         # Recorrer cada elemento de la lista
         for elem in (expr.list):
             recorrer(var,elem)
+        calcularTipoLista(expr.list)    
     elif isinstance(expr,lexer_parser.Cuant):
-        # Cuantificador: [% var: L : exp %]
-        recorrer(var,expr.exp)
+        # Cuantificador: [% op var: L : exp %]
         recorrer(var,expr.list)
+        recorrer(var,expr.exp)
         #if (expr.op==''):
          #   calcularTipoLista()
         #else:
@@ -103,12 +130,24 @@ def recorrer(var,expr):
     elif isinstance(expr,lexer_parser.Var):
         # Caso base: expr es una variable
         if(contexTabla):
-            if(expr.var in diccTabla):
+            if (expr.var in diccTabla):
                 tabla=nombreTabla
                 GD.add_edge(tabla+"."+expr.var,var)
+                expr.tipo= diccTabla[expr.var][0]
             else:
                 GD.add_edge(expr.var,var)
-
+                # Buscar el tipo de la variable en la tabla de simbolos
+                expr.tipo= table[expr.var][0]
+        else:
+            GD.add_edge(expr.var,var)
+            # Buscar el tipo de la variable en la tabla de simbolos
+            expr.tipo= table[expr.var][0]
+                
+    elif isinstance(expr,lexer_parser.Num):
+        expr.tipo= "int"
+    elif isinstance(expr,lexer_parser.String):
+        expr.tipo="string"
+        
     elif expr == 'input':       
         table['_e' + str(nro+1)] = ('',expr)
         GD.add_edge('_e' + str(nro+1),var)
@@ -216,7 +255,8 @@ for var in table.copy():
         diccTabla= table[var][1]
         nombreTabla= var
         for varT in table[var][1].keys():	
-            recorrer(var+ "." + varT,table[var][1][varT][1])
+            recorrer(var+"."+ varT,table[var][1][varT][1])
+        contexTabla=False
     else:
         recorrer(var,table[var][1])
 		
