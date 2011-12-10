@@ -22,6 +22,7 @@ import matplotlib.pyplot as plt
 import copy
 import sys
 import os
+import re
 
 def calcularTipoOpBin(expr,expr1,expr2):
 
@@ -35,7 +36,7 @@ def calcularTipoOpBin(expr,expr1,expr2):
             expr.tipo="int"
         else:
             expr.tipo="tipo_error"
-    elif isinstance(expr,lexer_parser.Producto)
+    elif isinstance(expr,lexer_parser.Producto):
         if expr1.tipo=="int" & expr2.tipo=="int":
             expr.tipo="int"
         else:
@@ -72,7 +73,7 @@ def calcularTipoOpBin(expr,expr1,expr2):
             expr.tipo="tipo_error"
     
 def calcularTipoLista(lista):
-    if (length(lista)==0):
+    if (len(lista)==0):
         return "list of"
     else:
         type= lista[1].tipo
@@ -116,8 +117,8 @@ def recorrer(var,expr):
         recorrer(var,expr.cond)
         recorrer(var,expr.exp1)
         recorrer(var,expr.exp2)
-        if (expr.cond.tipo=="bool") & (expr.expr1.tipo==expr.expr2.tipo):
-            expr.tipo=expr.expr1.tipo
+        if (expr.cond.tipo=="bool") & (expr.exp1.tipo==expr.exp2.tipo):
+            expr.tipo=expr.exp1.tipo
         else:
             expr.tipo="tipo_error"
     elif isinstance(expr,lexer_parser.AccList):
@@ -166,7 +167,6 @@ def recorrer(var,expr):
          #   calcularTipoLista()
         #else:
           #  calcularTipoCuant()
-
         GD.remove_node(var)
     elif isinstance(expr,lexer_parser.Var):
         # Caso base: expr es una variable
@@ -182,7 +182,8 @@ def recorrer(var,expr):
         else:
             GD.add_edge(expr.var,var)
             # Buscar el tipo de la variable en la tabla de simbolos
-            expr.tipo= table[expr.var][0]
+            if expr.var in table:
+                expr.tipo= table[expr.var][0]
                 
     elif isinstance(expr,lexer_parser.Num):
         expr.tipo= "int"
@@ -211,11 +212,14 @@ nro=0
 data = sys.argv[1]
 file = open(data,"r")
 salida = file.name[:-3] + "html"
-file_e = open(salida,"w")
+file_e = open(salida,"w+")
 
 # Reconocimiento de los bloques correspondientes a codigo shinyEL
 tables = []
 i = 1
+
+tag_html = {}
+
 while True:
     b = ''
     bl = False
@@ -224,19 +228,26 @@ while True:
         break    
     if s1 == '{':
         s1 = file.read(1)
-        file_e.write("marca_shiny_"+str(i)) # Escritura de la marca shiny en nuevo archivo html
-        while True:
-            s1 = file.read(1)
-            if s1 == '%':
-                s2 = file.read(1)
-                if  s2 == '}':
-                    bl = True
-                    i += 1
-                    break
+        if s1 == '%':
+            marca_shiny = '&(marcha_shiny_'+str(i)+')'
+            file_e.write(marca_shiny) # Escritura de la marca shiny en nuevo archivo html
+            while True:
+                s1 = file.read(1)
+                if s1 == '%':
+                    s2 = file.read(1)
+                    if  s2 == '}':
+                        bl = True
+                        i += 1
+                        break
+                    else:
+                        b = b + s1 + s2
                 else:
-                    b = b + s1 + s2
-            else:
-                b = b + s1
+                    b = b + s1
+        else:
+            print "Falta un caracter % en la expresion "  + str(i) + ". Se espera '{%'"
+            file_e.close()
+            os.remove(salida)
+            exit(1)
     else:
         file_e.write(s1)
         # Analisis del bloque de codigo
@@ -245,16 +256,41 @@ while True:
         #for tok in lexer: print tok
         result = parser.parse(b)
         print b
-        for exp in result[0].exp:
-            print exp.eval()
-        print "\n"
+        exp = result[0]
+        if isinstance(exp,lexer_parser.SalidaExpresion):
+            nro = nro + 1
+            id = '_e'+str(nro) 
+            table[id] = ('',result[0].exp)
+            if exp.exp == 'input':
+                tag_html[marca_shiny] = lexer_parser.html_input(id)
+            else:
+                tag_html[marca_shiny] = lexer_parser.html_span(id)
+        else:
+            print exp.exp
+            tag_html[marca_shiny] = result[0].html()
+            for d in exp.exp:
+                print d
+  
         # Se aniade la tabla de simbolo del bloque a una lista
         tables.append(result[1])
-        
-        if isinstance(result[0],lexer_parser.SalidaExpresion):
-		    nro = nro + 1
-		    table['_e' + str(nro)] = ('',result[0].exp)
 
+file.close()
+file_e.seek(0)
+
+intermedio = file_e.read()
+
+for tag in tag_html:
+    tmp = ''    
+    if isinstance(tag_html[tag],list):
+        for t in tag_html[tag]:
+            tmp = tmp + t + "\n"
+        intermedio = intermedio.replace(tag,tmp)
+    else:
+        intermedio = intermedio.replace(tag,tag_html[tag])
+
+
+file_e.seek(0)
+file_e.write(intermedio)
 file_e.close()
 
 #########################################
@@ -265,7 +301,7 @@ error= False
 for tab in tables:
     for var in tab.keys():
         if var in table:
-            print "Error: Variable"+ var+" declarada mas de una vez"
+            print "Error: Variable '"+ var + "' declarada mas de una vez"
             os.remove(salida)
             error= True
         table[var]= tab[var]
@@ -300,8 +336,6 @@ for var in table.copy():
         contexTabla=False
     else:
         recorrer(var,table[var][1])
-		
-print table
 
 #print lexer_parser.Dec("a","int",lexer_parser.Num(1)).eval()
 			

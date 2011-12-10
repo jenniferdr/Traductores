@@ -105,9 +105,22 @@ precedence = (
 #########   CLASES PARA REPRESENTACION DEL ARBOL SINTACTICO ###############
 ###########################################################################
 
+def html_input_js(id,eval):
+    return '<input type = "text" id = "sel_' + id + '" onchange="eval_' + eval + '();" ' + 'value="0"/>'
+
+def html_input(id):
+    return '<input type = "text" id = "sel_' + id + '" value="0"/>'
+    
+def html_span(id):
+    return '<span id = "sel_' + id + '"></span>'
+
 class SalidaNoSalida:
     def __init__(self,exp):
-        self.exp = exp
+        if isinstance(exp,list):
+            exp.reverse()
+            self.exp = exp
+        else:
+            self.exp = exp
 
 class Salida(SalidaNoSalida):
     def __str__(self):
@@ -117,6 +130,12 @@ class Salida(SalidaNoSalida):
         aux = aux[:-1] + ']'
 
         return "Salida(" + aux + ")"
+        
+    def html(self):
+        aux = []
+        for exp in self.exp:
+            aux.append(exp.html())
+        return aux
 	
 class NoSalida(SalidaNoSalida):
     def __str__(self):
@@ -126,14 +145,16 @@ class NoSalida(SalidaNoSalida):
         aux = aux[:-1] + ']'
 
         return "NoSalida(" + aux + ")"
+        
+    def html(self):
+        return ''
 		
 class SalidaExpresion(SalidaNoSalida):
     def __str__(self):
         return "SalidaExpression(" + str(self.exp) + ")"
-    		
-class NoSalidaExpresion(SalidaNoSalida):
-     def __str__(self):
-        return "NoSalidaExpression(" + str(self.exp) + ")"
+
+    def html(self):
+        return ''
 
 class Dec:
     def __init__(self,var,type,exp):
@@ -146,29 +167,45 @@ class Dec:
 		
     def eval(self):
         if self.exp != "input":
-            if self.type != 'table':
-                return 'variable["' + self.var.var + '"] = ' + self.exp.eval() + ";"
-            elif self.type == 'table':
-                aux = []
-                for col in self.exp.col:
-                    tmp = "for (i = 0 ; i < " + str(self.exp.tam.num) + " ; i++) {"
-                    tmp = tmp + '\n\t' + AccTab(self.var,col,Num('i')).eval() + ' = '
-                    if col.exp != "input":
-                        tmp = tmp + col.exp.eval() + ";" #esto no se puede hay columnas y variables
-                    else:
-                        if col.type == 'int':
-                            tmp = tmp + 'parseInt(document.getElementById("sel_' + self.var.var + '_"+ i +"_' + col.var.var + '").value);'
-                        elif col.type == 'string':
-                            tmp = tmp + 'document.getElementById("sel_' + self.var.var + '_i_' + col.var.var + '").value;'
-                    tmp = tmp + "\n}"
-                    print tmp
-                    aux.append(tmp)
-                return aux
+            return 'variable["' + self.var.var + '"] = ' + self.exp.eval() + ";"
         else:
-            if self.type == 'int':	
-                return self.var.eval() + ' = parseInt(document.getElementById("sel_' + self.var.var + '").value);'
+            tmp = 'document.getElementById("sel_' + self.var.var + '").value'
+            if self.type == 'int':
+                return self.var.eval() + ' = parseInt(' + tmp + ');'
             elif self.type == 'string':
-                return self.var.eval() + ' = document.getElementById("sel_' + self.var.var + '").value;'
+                return self.var.eval() + ' = ' + tmp + ';'
+                
+    def html(self):
+        tmp = ''
+        if self.type == 'table':
+            tmp = tmp + '<table>\n'
+            for i in range(0,self.exp.tam.num):
+                tmp = tmp + '    <tr>'
+                for c in self.exp.col:
+                    tmp = tmp + '\n        <td>'
+                    id = self.var.var + '_' + str(i) + '_' + c.var.var
+                    if c.exp == 'input':
+                        tmp = tmp + html_input_js(id,self.var.var + '_' + c.var.var)
+                    else:
+                        tmp = tmp + html_span(id)
+                    tmp = tmp + '</td>'
+                tmp = tmp + '\n    </tr>\n'
+            tmp = tmp + '</table>\n'
+        elif 'list of' in self.type:
+            ## if self.type == 'list of':
+            ##     return "Lista Vacia" 
+            
+            l = len(self.exp.list)
+            for i in range(0,l):
+                tmp = tmp + html_span(self.var.var + '_' + str(i)) + ','
+            tmp = tmp[:-1]
+                
+        else:
+            if self.exp == 'input':
+                tmp = html_input_js(self.var.var,self.var.var)
+            else:
+                tmp = html_span(self.var.var)
+        return tmp
 
 class Expresion:
     def __init__(self,tipo=None):
@@ -179,7 +216,7 @@ class BinOp(Expresion):
         Expresion.__init__(self)
         self.op1 = op1
         self.op2 = op2
-
+        
 class Suma(BinOp):
     def __str__(self):
         return "Suma(" + str(self.op1) + "," + str(self.op2) + ")"
@@ -229,8 +266,10 @@ class Fby(BinOp):
 class TbyOp(BinOp):
     def __str__(self):
         return  "TbyOp(" + str(self.op1) + "," + str(self.op2) + ")"
+		
 class OpBool(BinOp):
     pass
+	
 class And(OpBool):
     def __str__(self):
         return "And(" + str(self.op1) + "," + str(self.op2) + ")"
@@ -331,8 +370,8 @@ class AccList(Expresion):
     def __str__(self):
         return "AccList(" + str(self.var) + "," + str(self.index) + ")"
 	
-#    def eval(self):
-#        return 'variables["' + self.var.eval() + "][" + self.index.eval() + "]"
+    def eval(self):	
+        return 'variables["' + self.var.var + "][" + self.index.eval() + "]"
 
 class AccTab(Expresion):
     def __init__(self,var,col,index):
@@ -345,7 +384,7 @@ class AccTab(Expresion):
         return "AccTab(" + str(self.var) + "," + self.col + "," + str(self.index) + ")"
 	    
     def eval(self):
-        return 'variables["' + self.var.var + '"][' + self.index.eval() + "]." + self.col.var.var
+        return 'variables["' + self.var.var + '"][' + self.index.eval() + "]." + self.col
 
 class Tabla(Expresion):
     def __init__(self,tam,col):
@@ -371,7 +410,10 @@ class ColTabla:
         self.exp = exp
 
     def __str__(self):
-        return "ColTabla(" +str( self.var) + "," + self.type + "," + str(self.exp) + ")"
+        return "ColTabla(" + str(self.var) + "," + self.type + "," + str(self.exp) + ")"
+
+    def eval(self):
+        return self.var.eval()
 
 class Range(Expresion):
     def __init__(self,ini,fin):
@@ -427,12 +469,9 @@ class List(Expresion):
 
     def eval(self):
         aux = '['
-		
-        for exp in self.list:
-            aux = aux + exp.eval() + ','
-        aux = aux[:-1] + ']'
-		
-        return aux
+        for e in self.list:
+            aux =  aux + e.eval() + ','
+        return aux[:-1] + ']'
 
 class Num(Expresion):
     def __init__(self,num):
@@ -458,10 +497,9 @@ class String(Expresion):
 
     
 class Var(Expresion):
-    def __init__(self,var,var_tab):
+    def __init__(self,var):
         Expresion.__init__(self)
         self.var = var
-        self.var_tab = var_tab
 		
     def __str__(self):
         return "Var("+ self.var + ")"
@@ -478,7 +516,8 @@ def p_program_dec(p):
                | declaraciones'''
 
     # Tabla de simbolos para el tag de shiny 
-    nombres={}
+    global nombres
+    nombres ={}
     
     if len(p) == 3:
         p[2][2].reverse()
@@ -527,9 +566,9 @@ def p_declaraciones(p):
     '''declaraciones : VAR COLON type COMMA declaraciones COMMA expresion
                      | VAR COLON type ASIG expresion ''' 
     if len(p) == 6:
-        p[0] = ([Var(p[1],False)],[p[3]],[p[5]])
+        p[0] = ([Var(p[1])],[p[3]],[p[5]])
     else:
-        p[5][0].append(Var(p[1],False))
+        p[5][0].append(Var(p[1]))
         p[5][1].append(p[3])
         p[5][2].append(p[7])
         p[0] = p[5]
@@ -574,7 +613,7 @@ def p_operando(p):
 
 def p_aux_1(p):
     'aux : VAR'
-    p[0]= Var(p[1],False)
+    p[0]= Var(p[1])
 
 def p_aux_2(p):
     ''' aux : NUM
@@ -593,7 +632,7 @@ def p_aux_2(p):
         if p[2] == '(':
             p[0] = Range(p[3],p[5])
         if p[2] == '[':
-            p[0] = AccTab(Var(p[1],False),p[6],p[3])
+            p[0] = AccTab(Var(p[1]),p[6],p[3])
     elif len(p) == 5:
         if p[2] == '(':
             if p[1] == 'len':
@@ -604,9 +643,9 @@ def p_aux_2(p):
                 else:
                     p[0] = p[3]
         elif p[2] == '[':
-            p[0] = AccList(Var(p[1],False),p[3])
+            p[0] = AccList(Var(p[1]),p[3])
     elif len(p) == 4:
-        p[0] = AccTab(Var(p[1],False),Var(p[3],False),0)
+        p[0] = AccTab(Var(p[1]),Var(p[3]),0)
     elif len(p) == 3:
         p[0] = Min(p[2])
     elif isinstance(p[1],int):
@@ -624,7 +663,7 @@ def p_m(p):
     
 def p_cuant(p):
     'cuant : LLIST cuan VAR COLON operando COLON operando RLIST'
-    p[0] = Cuant(p[2],Var(p[3],False),p[5],p[7])
+    p[0] = Cuant(p[2],Var(p[3]),p[5],p[7])
     
 def p_list(p):
     '''list : LLIST VAR COLON operando COLON operando RLIST
@@ -632,7 +671,7 @@ def p_list(p):
     if len(p) == 4:
         p[0] = p[2]
     else:
-        p[0] = Cuant('',Var(p[2],False),p[4],p[6])
+        p[0] = Cuant('',Var(p[2]),p[4],p[6])
     
 def p_cuan(p):
     '''cuan : operador
@@ -669,10 +708,10 @@ def p_listVars(p):
     '''listVars : listVars COMMA VAR
                 | VAR'''
     if len(p) == 4:
-        p[1].list.append(Var(p[3],False))
+        p[1].list.append(Var(p[3]))
         p[0] = p[1]
     else:
-        p[0] = List([Var(p[1],False)])
+        p[0] = List([Var(p[1])])
 
 def p_select(p):
     'select : IF expBool THEN expresion ELSE expresion'
@@ -747,10 +786,10 @@ def p_col(p):
     ''' col : VAR COLON typ ASIG expresion
             | col SEMICOLON VAR COLON typ ASIG expresion'''
     if len(p) == 8:
-        p[1].append(ColTabla(Var(p[3],True),p[5],p[7]))
+        p[1].append(ColTabla(Var(p[3]),p[5],p[7]))
         p[0] = p[1]
     else:
-        p[0] = [ColTabla(Var(p[1],True),p[3],p[5])]
+        p[0] = [ColTabla(Var(p[1]),p[3],p[5])]
 
 def p_typ(p):
     '''typ : INT
