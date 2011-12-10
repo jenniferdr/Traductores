@@ -361,6 +361,7 @@ file_e = open(salida,"w")
 # Reconocimiento de los bloques correspondientes a codigo shinyEL
 tables = []
 i = 1
+tag_html= {}
 while True:
     b = ''
     bl = False
@@ -369,21 +370,28 @@ while True:
         break    
     if s1 == '{':
         s1 = file.read(1)
-        # Escritura de la marca shiny en nuevo archivo html
-        file_e.write("&(marca_shiny_"+str(i)+")")
-        while True:
-            s1 = file.read(1)
-            if s1 == '%':
-                s2 = file.read(1)
-                if  s2 == '}':
-                    bl = True
-                    i += 1
-                    break
-                else:
-                    b = b + s1 + s2
-            else:
-                b = b + s1
-    else:
+	if s1=='%':
+	   marca_shiny = '&(marcha_shiny_'+str(i)+')'
+           # Escritura de la marca shiny en nuevo archivo html
+           file_e.write(marca_shiny)
+           while True:	
+            	 s1 = file.read(1)
+            	 if s1 == '%':
+                    s2 = file.read(1)
+                    if  s2 == '}':
+                    	bl = True
+                    	i += 1
+                    	break
+                    else:
+			b = b + s1 + s2
+            	else:
+		    b = b + s1
+        else:
+		print "Falta un caracter % en la expresion "  + str(i) + ". Se espera '{%'"
+		file_e.close()
+		os.remove(salida)
+		exit(1)
+     else:
         file_e.write(s1)
         # Analisis del bloque de codigo
     if bl and b != '':
@@ -391,17 +399,41 @@ while True:
         #for tok in lexer: print tok
         result = parser.parse(b)
         print b
-        #for exp in result[0].exp:
-        #    print exp.eval()
-        #print "\n"
+	exp= result[0]
+	if isinstance(exp,lexer_parser.SalidaExpresion):
+            nro = nro + 1
+            id = '_e'+str(nro) 
+            table[id] = ('',exp.exp)
+            if exp.exp == 'input':
+                tag_html[marca_shiny] = lexer_parser.html_input(id)
+            else:
+                tag_html[marca_shiny] = lexer_parser.html_span(id)
+            print exp.exp
+        else:
+            print exp.exp
+            tag_html[marca_shiny] = exp.html()
+            for d in exp.exp:
+                print d
         # Se aniade la tabla de simbolo del bloque a una lista
         tables.append(result[1])
         if result[2]: error=True
         
-        if isinstance(result[0],lexer_parser.SalidaExpresion):
-		    nro = nro + 1
-		    table['_e' + str(nro)] = ('',result[0].exp)
+       
+file_e.close()
+file_e.seek(0)
+intermedio= file_e.read()
 
+for tag in tag_html:
+    tmp = ''    
+    if isinstance(tag_html[tag],list):
+        for t in tag_html[tag]:
+            tmp = tmp + t + "\n"
+        intermedio = intermedio.replace(tag,tmp)
+    else:
+        intermedio = intermedio.replace(tag,tag_html[tag])
+
+file_e.seek(0)
+file_e.write(intermedio)
 file_e.close()
 
 #########################################
