@@ -479,7 +479,8 @@ def p_program_dec(p):
 
     # Tabla de simbolos para el tag de shiny 
     nombres={}
-    
+    error=False
+
     if len(p) == 3:
         p[2][2].reverse()
         aux = []
@@ -489,11 +490,17 @@ def p_program_dec(p):
                 col = p[2][2][i].col
                 simb_tabletype = {}
                 for c in col:
+                    if c.var.var in simb_tabletype:
+                        print "Error: variable "+c.var.var+"' declarada mas de una vez en la tabla '"+var.var+"'"
+                        error=True
                     simb_tabletype[c.var.var] = (c.type,c.exp)
                 nombres[var.var] = (p[2][1][i],simb_tabletype)    
             else:
+                if var.var in nombres:
+                    print "Error: variable '"+var.var+"' declarada mas de una vez"
+                    error=True
                 nombres[var.var] = (p[2][1][i],p[2][2][i])
-        p[0] = (Salida(aux),nombres)
+        p[0] = (Salida(aux),nombres,error)
     else:
         p[1][2].reverse()
         aux = []
@@ -503,20 +510,26 @@ def p_program_dec(p):
                 col = p[1][2][i].col
                 simb_tabletype = {}
                 for c in col:
+                    if c.var.var in simb_tabletype:
+                        print "Error: variable '"+c.var.var+"' declarada mas de una vez en la tabla '"+ var.var+"'"
+                        error=True
                     simb_tabletype[c.var.var] = (c.type,c.exp)
                 nombres[var.var] = (p[1][1][i],simb_tabletype)    
             else:
+                if var.var in nombres:
+                    print "Error: variable '"+var.var+"' declarada mas de una vez"
+                    error=True
                 nombres[var.var] = (p[1][1][i],p[1][2][i])	
-        p[0] = (NoSalida(aux),nombres)
+        p[0] = (NoSalida(aux),nombres,error)
        
 def p_program_exp(p):
     '''program : EQ expresion
                | expresion'''
-	
+    error=False
     if len(p) == 3:
-		p[0] = (SalidaExpresion(p[2]),{})
+		p[0] = (SalidaExpresion(p[2]),{},error)
     else:
-		p[0] = (NoSalidaExpresion(p[1]),{})
+		p[0] = (NoSalidaExpresion(p[1]),{},error)
 		
 def p_empty(p):
     'empty :'
@@ -740,7 +753,7 @@ def p_condExp(p):
             p[0] = p[2]
 
 def p_tabla(p):
-    'tabla : NEW TABLE LBRACK operando RBRACK WHERE col'
+    'tabla : NEW TABLE LBRACK NUM RBRACK WHERE col'
     p[0] = Tabla(p[4],p[7])
 
 def p_col(p):
