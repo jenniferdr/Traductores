@@ -370,28 +370,28 @@ while True:
         break    
     if s1 == '{':
         s1 = file.read(1)
-	if s1=='%':
-	   marca_shiny = '&(marcha_shiny_'+str(i)+')'
-           # Escritura de la marca shiny en nuevo archivo html
-           file_e.write(marca_shiny)
-           while True:	
-            	 s1 = file.read(1)
-            	 if s1 == '%':
+        if s1=='%':
+            marca_shiny = '&(marcha_shiny_'+str(i)+')'
+            # Escritura de la marca shiny en nuevo archivo html
+            file_e.write(marca_shiny)
+            while True:	
+                s1 = file.read(1)
+                if s1 == '%':
                     s2 = file.read(1)
                     if  s2 == '}':
                     	bl = True
                     	i += 1
                     	break
                     else:
-			b = b + s1 + s2
-            	else:
-		    b = b + s1
+                        b = b + s1 + s2
+                else:
+                     b = b + s1
         else:
-		print "Falta un caracter % en la expresion "  + str(i) + ". Se espera '{%'"
-		file_e.close()
-		os.remove(salida)
-		exit(1)
-     else:
+            print "Falta un caracter % en la expresion "  + str(i) + ". Se espera '{%'"
+            file_e.close()
+            os.remove(salida)
+            exit(1)
+    else:
         file_e.write(s1)
         # Analisis del bloque de codigo
     if bl and b != '':
@@ -419,7 +419,6 @@ while True:
         if result[2]: error=True
         
        
-file_e.close()
 file_e.seek(0)
 intermedio= file_e.read()
 
