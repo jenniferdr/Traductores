@@ -265,6 +265,7 @@ while True:
                 tag_html[marca_shiny] = lexer_parser.html_input(id)
             else:
                 tag_html[marca_shiny] = lexer_parser.html_span(id)
+            print exp.exp
         else:
             print exp.exp
             tag_html[marca_shiny] = result[0].html()
