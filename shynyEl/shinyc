@@ -220,6 +220,10 @@ i = 1
 
 tag_html = {}
 
+tag_script = '<script type="text/javascript" src="' + salida[:-4] + 'js"></script>'
+
+print tag_script
+
 while True:
     b = ''
     bl = False
@@ -261,16 +265,13 @@ while True:
             nro = nro + 1
             id = '_e'+str(nro) 
             table[id] = ('',result[0].exp)
-            if exp.exp == 'input':
+            if not(exp.exp == 'input'):
                 tag_html[marca_shiny] = lexer_parser.html_input(id)
-            else:
-                tag_html[marca_shiny] = lexer_parser.html_span(id)
-            print exp.exp
+                print exp.exp.eval()
         else:
-            print exp.exp
             tag_html[marca_shiny] = result[0].html()
             for d in exp.exp:
-                print d
+                print d.eval()
   
         # Se aniade la tabla de simbolo del bloque a una lista
         tables.append(result[1])
@@ -284,11 +285,16 @@ for tag in tag_html:
     tmp = ''    
     if isinstance(tag_html[tag],list):
         for t in tag_html[tag]:
-            tmp = tmp + t + "\n"
+            tmp = tmp + t + "\n\t"
         intermedio = intermedio.replace(tag,tmp)
     else:
         intermedio = intermedio.replace(tag,tag_html[tag])
 
+pos_head = intermedio.find('<head>')
+before_head = intermedio[:pos_head+6]
+after_head = intermedio[pos_head+7:]
+
+intermedio = before_head + '\n\t' + tag_script + '\n' + after_head
 
 file_e.seek(0)
 file_e.write(intermedio)

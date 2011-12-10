@@ -166,14 +166,17 @@ class Dec:
         return "Dec(" + str(self.var) + "," + str(self.type) + "," + str(self.exp) + ")"
 
     def eval(self):
-        if self.exp != "input":
-            return 'variable["' + self.var.var + '"] = ' + self.exp.eval() + ";"
+        if "list of" in self.type:
+            tmp = 'for(i = 0 ; i < length.' +  self.var.var + ' ; i++) {\n'
         else:
-            tmp = 'document.getElementById("sel_' + self.var.var + '").value'
-            if self.type == 'int':
-                return self.var.eval() + ' = parseInt(' + tmp + ');'
-            elif self.type == 'string':
-                return self.var.eval() + ' = ' + tmp + ';'
+            if self.exp != "input":
+                return 'variable["' + self.var.var + '"] = ' + self.exp.eval() + ";"
+            else:
+                tmp = 'document.getElementById("sel_' + self.var.var + '").value'
+                if self.type == 'int':
+                    return self.var.eval() + ' = parseInt(' + tmp + ');'
+                elif self.type == 'string':
+                    return self.var.eval() + ' = ' + tmp + ';'
 
     def html(self):
         tmp = ''
@@ -400,6 +403,9 @@ class Tabla(Expresion):
 
         return "Tabla(" + str(self.tam) + "," + aux + ")"
 
+    def eval(self):
+        return ''
+
 class ColTabla:
     def __init__(self,var,type,exp,tipo=None):
         self.var = var
@@ -466,12 +472,6 @@ class List(Expresion):
         aux = aux[:-1] + ']'
 
         return "List(" + aux + ")" 
-
-    def eval(self):
-        aux = '['
-        for e in self.list:
-            aux =  aux + e.eval() + ','
-        return aux[:-1] + ']'
 
 class Num(Expresion):
     def __init__(self,num):
@@ -806,5 +806,4 @@ def p_typ(p):
     p[0] = p[1]
 
 def p_error(p):
-    print "Syntax error in input! %r" % p.value
-    exit(1)
+    print "Error de sintaxis: %r" % p.value
