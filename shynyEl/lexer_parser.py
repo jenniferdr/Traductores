@@ -178,7 +178,8 @@ class Dec:
             return "codigo js de una tabla"
         else:
             if self.exp != "input":
-                return 'variable["' + self.var.var + '"] = ' + self.exp.eval() + ";"
+                if not(isinstance(self.exp,Cuant)):
+                    return 'variable["' + self.var.var + '"] = ' + self.exp.eval() + ";"
             else:
                 tmp = 'document.getElementById("sel_' + self.var.var + '").value'
                 if self.type == 'int':
