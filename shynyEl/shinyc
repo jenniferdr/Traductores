@@ -30,7 +30,7 @@ import re
 
 ######## TIPOS PARA OPERADORES BINARIOS ##########
 def calcularTipoOpBin(expr,expr1,expr2,var):
-
+    global error
     if isinstance(expr,lexer_parser.Suma):
         if expr1.tipo==expr2.tipo:
             expr.tipo= expr1.tipo
@@ -116,6 +116,7 @@ def calcularTipoOpBin(expr,expr1,expr2,var):
         
 ###### TIPO DE UNA LISTA #######    
 def calcularTipoLista(lista,var):
+    global error
     if (len(lista.list)==0):
         lista.tipo= "list of"
     else:
@@ -140,6 +141,7 @@ def calcularTipoLista(lista,var):
 
 ###### TIPOS PARA LOS OPERADORES UNARIOS ######          
 def calcularTipoUnOp(expresion,operando,var):
+    global error
     if isinstance(expresion,lexer_parser.Neg):
         if isinstance(operando,str):
              expresion.tipo="bool" if(operando=="true")or(operando=="false") else "error"
@@ -168,7 +170,7 @@ def calcularTipoCuant(cuant,op,var,listOTable,expr):
     # 2. [%    var : list : expr%] list of (tipo de la expr)
     # 3. [% op var: table: expr %] tipo de la expr
     # 4. [%    var: table: expr %] list of (tipo de la expr)
-
+    global error
     if (op==''):
         # Caso 2 y 4: 'listas'
         if expr.tipo=="int":
@@ -186,7 +188,8 @@ def calcularTipoCuant(cuant,op,var,listOTable,expr):
         
         # Caso 1 y 4
 
-def setTipoVar(expr): 
+def setTipoVar(expr):
+    global error
     # El tipo de la variable del cuantificador depende del tipo de la lista
     if expr.list.tipo=="list of int":     
         varCuant[expr.var]="int"
@@ -213,7 +216,7 @@ def setTipoVar(expr):
 
 ######### TIPOS PARA LOS ACCESOS A LISTAS ############
 def calcularTipoAccList(expr,var):
-
+    global error
     if (expr.var.tipo=="list of int") & (expr.index.tipo=="int"):
         expr.tipo="int"
     elif (expr.var.tipo=="list of string") & (expr.index.tipo=="int"):
@@ -225,7 +228,63 @@ def calcularTipoAccList(expr,var):
         print "Error de tipo en la variable"+var+".\n Var '"+expr.var.var+"': Se esperaba que fuera de tipo 'list of ..'"
     else:
         expr.tipo="tipo_error"
-            
+
+########## TIPOS PARA ACCESOS A TABLAS ##############
+def calcularTipoAccTab(expr,var):
+    global error
+    if isinstance(expx.index,int):
+        if (expr.var.tipo=="table")&(expr.col.tipo!="tipo_error"):
+             expr.tipo=expr.col.tipo
+        elif (expr.var.tipo!="table")&(expr.var.tipo!="tipo_error"):
+            print "Error de tipo en la variable '"+var+"'.\n Acceso a tabla mal definido"
+            error=True
+            expr.tipo="tipo_error"
+        else:
+            expr.tipo="tipo_error"
+    else:
+        if (expr.var.tipo=="table")&(expr.col.tipo!="tipo_error")&(expr.index.tipo!="tipo_error"):
+            expr.tipo=expr.col.tipo
+        elif (expr.var.tipo!="table")&(expr.var.tipo!="tipo_error"):
+            print "Error de tipo en la variable '"+var+"'.\n Acceso a tabla mal definido"
+            error=True
+            expr.tipo="tipo_error"
+        elif (expr.index.tipo!="int")&(expr.index.tipo!="tipo_error"):
+            print "Error de tipo en la variable '"+var+"'.\n Acceso a tabla mal definido"
+            error=True
+            expr.tipo="tipo_error"
+        else:
+            expr.tipo="tipo_error"
+
+########## TIPO PARA LA FUNCION RANGE #############  
+def calcularTipoRange(expr,var):
+    global error
+    if (expr.ini.tipo=="int") & (expr.fin.tipo=="int"):
+        expr.tipo="list of int"
+    elif (expr.ini.tipo!="int")&(expr.ini.tipo!="tipo_error"):
+        expr.tipo="tipo_error"
+        error=True
+        print "Error de tipo en la variable '"+var+"'.\n Range esperaba argumento de tipo 'int'"
+    elif (expr.fin.tipo!="int")&(expr.fin.tipo!="tipo_error"):
+        expr.tipo="tipo_error"
+        error=True
+        print "Error de tipo en la variable '"+var+"'.\n Range esperaba argumento de tipo 'int'"
+    else:
+        expr.tipo="tipo_error"
+
+######### TIPO PARA LA FUNCION LEN ###############
+def calcularTipoLen(expr,var):
+    global error
+    if (expr.var.tipo == "list of int") | (expr.var.tipo=="list of string")|(expr.var.tipo=="list of"):
+        expr.tipo="int"
+    elif (expr.var.tipo != "tipo_error"):
+        error=True
+        print "Error de tipo en la variable '"+var+"'.\n Argumento de Len debe ser de tipo 'list of ..' "
+        expr.tipo= "tipo_error"
+    else:
+        expr.tipo= "tipo_error"
+         
+   
+        
 # Funcion que recibe el nombre de una variable var y una expresion expr.
 # Va anadiendo arcos que van desde las variables que se encuentran dentro
 # de la expresion expr hasta la variable var en el grafo declarado como
@@ -268,25 +327,16 @@ def recorrer(var,expr):
         # Acceso a tabla: var[index].col
         recorrer(var,expr.index)
         recorrer(var,expr.var)
-        if (expr.index.tipo=="int" | expr.index==0) & (expr.var.tipo=="table"):
-            expr.tipo=expr.col.tipo
-        else:
-            expr.tipo="tipo_error"
+        calcularTipoAccTab(expr,var)
     elif isinstance(expr,lexer_parser.Range):
         # Funcion range(ini,fin)
         recorrer(var,expr.ini)
         recorrer(var,expr.fin)
-        if (expr.ini.tipo=="int") & (expr.fin.tipo=="int"):
-            expr.tipo="list of int"
-        else:
-            expr.tipo="tipo_error"
+        calcularTipoRange(expr,var)
     elif isinstance(expr,lexer_parser.Len):
         # Funcion Len(var)
         recorrer(var,expr.var)
-        if (expr.var.tipo == "list of int") | (expr.var.tipo=="list of string")|(expr.var.tipo=="list of"):
-            expr.tipo="int"
-        else:
-            expr.tipo= "tipo_error"
+        calcularTipoLen(expr,var)
     elif isinstance(expr,lexer_parser.List):
         # Recorrer cada elemento de la lista
         for elem in (expr.list):
@@ -306,32 +356,34 @@ def recorrer(var,expr):
     elif isinstance(expr,lexer_parser.Var):
         # Caso base: expr es una variable
         if(contexTabla):
-            if (expr.var in diccTabla):
+            if(contexCuant)&(expr.var in varCuant):
+                expr.tipo= varCuant[expr.var] 
+            elif (expr.var in diccTabla):
                 tabla=nombreTabla
                 GD.add_edge(tabla+"."+expr.var,var)
                 expr.tipo= diccTabla[expr.var][0]
             else:
-                GD.add_edge(expr.var,var)
-                # Buscar el tipo de la variable en la tabla de simbolos
-######################### Si no se encuentra error !! Y que fuera del contexto
-######################### no exista un var.var
-########################## El tipo de una variable puede ser "opcional" cuidado
-#### Si estoy en el contexto de un cuantificador revisar todas las variables primero en el diccionario 
-                expr.tipo= table[expr.var][0]
+                if (expr.var in table):
+                    GD.add_edge(expr.var,var)
+                    expr.tipo= table[expr.var][0]
+                else:
+                    print "Error: variable '"+var+"' usada sin declarar"
+                    error=True
+        elif (contexCuant)&(expr.var in varCuant):
+            expr.tipo= varCuant[expr.var]
         else:
-            GD.add_edge(expr.var,var)
-            # Buscar el tipo de la variable en la tabla de simbolos
-            expr.tipo= table[expr.var][0]
-                
+            if (expr.var in table):
+                GD.add_edge(expr.var,var)
+                expr.tipo= table[expr.var][0]
+            else:
+                print "Error: variable '"+var+"' usada sin declarar"
+                error=True
+
     elif isinstance(expr,lexer_parser.Num):
         expr.tipo= "int"
     elif isinstance(expr,lexer_parser.String):
         expr.tipo="string"
-        
-    elif expr == 'input':       
-        table['_e' + str(nro+1)] = ('',expr)
-        GD.add_edge('_e' + str(nro+1),var)
-        nro= nro+1
+                    
 
 ###########################################################################
 ###############                   MAIN                    #################
@@ -415,8 +467,8 @@ while True:
                 print exp.exp.eval()
         else:
             tag_html[marca_shiny] = result[0].html()
-            for d in exp.exp:
-                print d.eval()
+            #for d in exp.exp:
+            #    print d.eval()
   
         # Se aniade la tabla de simbolo del bloque a una lista
         tables.append(result[1])
