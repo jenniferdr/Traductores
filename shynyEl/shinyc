@@ -170,8 +170,13 @@ def calcularTipoCuant(cuant,op,var,listOTable,expr):
     # 3. [% op var: table: expr %] tipo de la expr
     # 4. [%    var: table: expr %] list of (tipo de la expr)
     global error
+    global contexCuant
+    global varCuant
     if (op==''):
         # Caso 2 y 4: 'listas'
+        if (var.tipo=="opcional"):
+            cuant.tipo="list of"
+            return
         if expr.tipo=="int":
             cuant.tipo="list of int"
         elif expr.tipo=="string":
@@ -179,16 +184,34 @@ def calcularTipoCuant(cuant,op,var,listOTable,expr):
         elif expr.tipo=="table":
             hola=1
         elif expr.tipo=="list of int":
-            holh=0
+            print "Error en cuantificador"
+            error=True
+            cuant.tipo="tipo_error"
+            return
         elif expr.tipo=="list of string":
-            gol=0
-        #if varCuant[var]=="opcional":
-         #   cuant.tipo="list of"
-        
-        # Caso 1 y 4
+            print "Error en cuantificador"
+            error=True
+            cuant.tipo="tipo_error"
+            return
+    else:
+        # Caso 1 y 4 
+        if (var.tipo=="opcional"):
+            cuant.tipo="tipo_error"
+            print "Error en cuantificador"
+            error=True
+            return
+        if (expr.tipo=="int") or (expr.tipo=="string")or(expr.tipo=="bool"):
+            cuant.tipo= expr.tipo
+        else:
+            cuant.tipo="tipo_error"
+            error=True
+            print "Error en cuantificador"
 
+
+## TIPO PARA LA VARIABLE DEL CUANTIFICADOR #######
 def setTipoVar(expr):
     global error
+    global varCuant
     # El tipo de la variable del cuantificador depende del tipo de la lista
     if expr.list.tipo=="list of int":     
         varCuant[expr.var]="int"
@@ -198,18 +221,17 @@ def setTipoVar(expr):
         varCuant[expr.var]="opcional"
     elif expr.list.tipo=="table":
         varCuant[expr.var]="table"
-    elif expr.list.tipo=="int":
-        print"Error de tipo en la variable'"+expr.var+"'se esperaba list o table"
+    elif (expr.list.tipo=="int")or (expr.list.tipo=="string"):
+        print "Error de tipo en la variable'"+expr.var+"'se esperaba list o table en el cuerpo del cuantificador"
         expr.tipo="tipo_error"
         error=True
         return False
-    elif expr.list.tipo=="string":
-        print "Error de tipo en la variable "+expr.var+" se esperaba list o table"
+    elif expr.list.tipo=="tipo_error":
         expr.tipo="tipo_error"
-        error=True
         return False
     else:
         varCuant[expr.var]="tipo_error"
+        expr.tipo="tipo_error"
         return False
     return True
 
@@ -347,13 +369,11 @@ def recorrer(var,expr):
         contextCuant=True
         ok= setTipoVar(expr)
         if not(ok):
+            # El tipo de la variable 'var' tiene un tipo_error
             return 
         # Calcular el tipo de la expresion tomando en cuenta el tipo de var
-        recorrer(var,expr.exp)
-        #if (expr.op==''):
-         #   calcularTipoLista()
-        #else:
-          #  calcularTipoCuant()
+        if (expr.var.tipo!="opcional"):
+            recorrer(var,expr.exp)
         calcularTipoCuant(expr,expr.op,expr.var,expr.list,expr.exp)
         GD.remove_node(expr.var.var)
     elif isinstance(expr,lexer_parser.Var):
