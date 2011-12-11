@@ -167,7 +167,7 @@ def recorrer(var,expr):
          #   calcularTipoLista()
         #else:
           #  calcularTipoCuant()
-        GD.remove_node(var)
+        GD.remove_node(expr.var.var)
     elif isinstance(expr,lexer_parser.Var):
         # Caso base: expr es una variable
         if(contexTabla):
@@ -189,12 +189,6 @@ def recorrer(var,expr):
         expr.tipo= "int"
     elif isinstance(expr,lexer_parser.String):
         expr.tipo="string"
-        
-    elif expr == 'input':       
-        table['_e' + str(nro+1)] = ('',expr)
-        GD.add_edge('_e' + str(nro+1),var)
-        nro= nro+1
-
 
 ###########################################################################
 ###############                   MAIN                    #################
@@ -222,7 +216,7 @@ tag_html = {}
 
 tag_script = '<script type="text/javascript" src="' + salida[:-4] + 'js"></script>'
 
-print tag_script
+codigo_js = {}
 
 while True:
     b = ''
@@ -262,16 +256,18 @@ while True:
         print b
         exp = result[0]
         if isinstance(exp,lexer_parser.SalidaExpresion):
-            nro = nro + 1
-            id = '_e'+str(nro) 
-            table[id] = ('',result[0].exp)
             if not(exp.exp == 'input'):
+                nro = nro + 1
+                id = '_e'+str(nro) 
+                table[id] = ('',result[0].exp,True)                
                 tag_html[marca_shiny] = lexer_parser.html_input(id)
-                print exp.exp.eval()
+                codigo_js[id] = exp.exp.eval()
+            else:
+                tag_html[marca_shiny] = ''
         else:
             tag_html[marca_shiny] = result[0].html()
             for d in exp.exp:
-                print d.eval()
+                 codigo_js[d.var.var] =  d.eval()
   
         # Se aniade la tabla de simbolo del bloque a una lista
         tables.append(result[1])
@@ -336,15 +332,61 @@ for var in table.copy():
     # Si el tipo de la variable es 'table'
     if table[var][0]=="table":
         contexTabla=True
-        diccTabla= table[var][1]
+        diccTabla= table[var][1][1]
         nombreTabla= var
-        for varT in table[var][1].keys():	
-            recorrer(var+"."+ varT,table[var][1][varT][1])
+        for varT in table[var][1][1].keys():	
+            recorrer(var+"."+ varT,table[var][1][1][varT][1])
         contexTabla=False
     else:
         recorrer(var,table[var][1])
 
-#print lexer_parser.Dec("a","int",lexer_parser.Num(1)).eval()
+print ''
+
+body_js = ''
+
+js = "var variables = new Array();\n"
+for v in codigo_js:
+    js = js + 'variables["' + v + '"]'
+    if table[v][0] == 'table' or 'list of' in table[v][0]:
+        var = 'variables["' + v + '"]'
+        js += ' = new Array();'
+        if table[v][0] == 'table':
+            cols = '{'
+            for c in table[v][1][1]:
+                zero = '0' if table[v][1][1][c][0] == 'int' else '""'
+                cols = cols + '"' +  c + '":' + zero + ', '
+            cols = cols[:-2] + '};'            
+            for i in range(0,table[v][1][0]):
+                js = js + '\n' + var + '[' + str(i) + '] = ' + cols
+        else:
+            zero = '0' if table[v][0] == 'list of int' else '""'
+            for i in range(0,len(table[v][1].list)):
+                js = js + '\n' + var + '[' + str(i) + '] = ' + zero
+    else:
+        if not(table[v][0] == ''):
+            zero = '0;\n' if table[v][0] == 'int' else '"";\n'
+        else:
+            zero = '0;\n' if table[v][1].tipo == 'int' else '"";\n'
+        js = js + ' = ' + zero 
+            
+    tmp = 'function eval_' + v + '() {\n'
+    if v[0] == '_':
+        tmp = tmp + '\tvariables["' + v + '"] = ' + codigo_js[v] + ';'
+    else:
+        tmp = tmp + '\t' +codigo_js[v]
+
+    if table[v][2]:
+        tmp = tmp + '\n\tdocument.getElementById("sel_' + v + '").innerHTML = variables["' + v + '"];'
+
+    tmp = tmp + '\n}\n\n'
+
+    body_js += tmp
+
+file_js = open(salida[:-4] + 'js',"w+")
+file_js.write(js + '\n\n' + body_js)
+file_js.close()
+
+#print body_js
 			
 #nx.draw(GD)
 #plt.show()

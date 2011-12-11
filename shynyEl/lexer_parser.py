@@ -151,7 +151,7 @@ class NoSalida(SalidaNoSalida):
 
 class SalidaExpresion(SalidaNoSalida):
     def __str__(self):
-        return "SalidaExpression(" + str(self.exp) + ")"
+        return "SalidaExpresion(" + str(self.exp) + ")"
 
     def html(self):
         return ''
@@ -167,7 +167,15 @@ class Dec:
 
     def eval(self):
         if "list of" in self.type:
-            tmp = 'for(i = 0 ; i < length.' +  self.var.var + ' ; i++) {\n'
+            if isinstance(self.exp,List):
+                tmp = ''
+                for i,e in enumerate(self.exp.list):
+                    tmp = tmp + 'variables["' + self.var.var + '"]["' + str(i) + '"] = '+  e.eval() + ';\n\t'
+                return tmp[:-2]
+            elif isinstance(self.exp,Cuant):
+                return "codigo js de un cuantificador"
+        elif self.type == "table":
+            return "codigo js de una tabla"
         else:
             if self.exp != "input":
                 return 'variable["' + self.var.var + '"] = ' + self.exp.eval() + ";"
@@ -196,12 +204,12 @@ class Dec:
             tmp = tmp + '</table>\n'
         elif 'list of' in self.type:
             ## if self.type == 'list of':
-            ##     return "Lista Vacia" 
-
-            l = len(self.exp.list)
-            for i in range(0,l):
-                tmp = tmp + html_span(self.var.var + '_' + str(i)) + ','
-            tmp = tmp[:-1]
+            ##     return "Lista Vacia"
+            if isinstance(self.exp,List):
+                l = len(self.exp.list)
+                for i in range(0,l):
+                    tmp = tmp + html_span(self.var.var + '_' + str(i)) + ','
+                    tmp = tmp[:-1]
 
         else:
             if self.exp == 'input':
@@ -532,12 +540,12 @@ def p_program_dec(p):
                         print "Error: variable "+c.var.var+"' declarada mas de una vez en la tabla '"+var.var+"'"
                         error=True
                     simb_tabletype[c.var.var] = (c.type,c.exp)
-                nombres[var.var] = (p[2][1][i],simb_tabletype)    
+                nombres[var.var] = (p[2][1][i],(p[2][2][i].tam,simb_tabletype),True)    
             else:
                 if var.var in nombres:
                     print "Error: variable '"+var.var+"' declarada mas de una vez"
                     error=True
-                nombres[var.var] = (p[2][1][i],p[2][2][i])
+                nombres[var.var] = (p[2][1][i],p[2][2][i],True)
         p[0] = (Salida(aux),nombres,error)
     else:
         p[1][2].reverse()
@@ -552,12 +560,12 @@ def p_program_dec(p):
                         print "Error: variable '"+c.var.var+"' declarada mas de una vez en la tabla '"+ var.var+"'"
                         error=True
                     simb_tabletype[c.var.var] = (c.type,c.exp)
-                nombres[var.var] = (p[1][1][i],simb_tabletype)    
+                nombres[var.var] = (p[1][1][i],(p[1][2][i].tam,simb_tabletype),False)    
             else:
                 if var.var in nombres:
                     print "Error: variable '"+var.var+"' declarada mas de una vez"
                     error=True
-                nombres[var.var] = (p[1][1][i],p[1][2][i])	
+                nombres[var.var] = (p[1][1][i],p[1][2][i],False)	
         p[0] = (NoSalida(aux),nombres,error)
 
 def p_program_exp(p):
