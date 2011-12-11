@@ -212,15 +212,15 @@ def calcularTipoCuant(cuant,op,var,listOTable,expr):
 def setTipoVar(expr):
     global error
     global varCuant
-    # El tipo de la variable del cuantificador depende del tipo de la lista
+    # El tipo de la variable del cuantificador depende del tipo de la lista 
     if expr.list.tipo=="list of int":     
-        varCuant[expr.var]="int"
+        varCuant[expr.var.var]="int"
     elif expr.list.tipo=="list of string":
-        varCuant[expr.var]="string"
+        varCuant[expr.var.var]="string"
     elif expr.list.tipo=="list of":
-        varCuant[expr.var]="opcional"
+        varCuant[expr.var.var]="opcional"
     elif expr.list.tipo=="table":
-        varCuant[expr.var]="table"
+        varCuant[expr.var.var]="table"
     elif (expr.list.tipo=="int")or (expr.list.tipo=="string"):
         print "Error de tipo en la variable'"+expr.var+"'se esperaba list o table en el cuerpo del cuantificador"
         expr.tipo="tipo_error"
@@ -314,7 +314,7 @@ def calcularTipoLen(expr,var):
 def recorrer(var,expr):
     global nro
     global varCuant
-    global contextCuant
+    global contexCuant
     global error
 
     if isinstance(expr,lexer_parser.BinOp):
@@ -366,7 +366,7 @@ def recorrer(var,expr):
     elif isinstance(expr,lexer_parser.Cuant):
         # Cuantificador: [% op var: L : exp %]
         recorrer(var,expr.list)
-        contextCuant=True
+        contexCuant=True
         ok= setTipoVar(expr)
         if not(ok):
             # El tipo de la variable 'var' tiene un tipo_error
@@ -375,9 +375,8 @@ def recorrer(var,expr):
         if (expr.var.tipo!="opcional"):
             recorrer(var,expr.exp)
         calcularTipoCuant(expr,expr.op,expr.var,expr.list,expr.exp)
-        GD.remove_node(expr.var.var)
     elif isinstance(expr,lexer_parser.Var):
-        # Caso base: expr es una variable
+        # Caso base: expr es una variabl
         if(contexTabla):
             if(contexCuant)&(expr.var in varCuant):
                 expr.tipo= varCuant[expr.var] 
@@ -568,7 +567,7 @@ for var in table.copy():
     else:
         recorrer(var,table[var][1])
 
-
+if error:exit(1)
 ##########################################################
 ###  Verificacion de referencias ciclicas en el grafo  ###
 ##########################################################
