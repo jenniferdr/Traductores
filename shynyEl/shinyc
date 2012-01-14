@@ -7,7 +7,7 @@
 # Devuelve una representacion intermedia del codigo html con marcas en donde 
 # aparecen los tags de shinyEL. Y construye el grafo de dependencias. 
 #
-# Version 0.1
+# Version 0.4
 #
 # Autores : Hancel Gonzalez   07-40983
 #           Jennifer Dos Reis 08-10323
@@ -18,79 +18,430 @@ import lexer_parser
 import ply.lex as lex
 import ply.yacc as yacc
 import networkx as nx
-import matplotlib.pyplot as plt
+import copy
 import sys
+import os
+import ciclos
 
+###############################################################
+##########    METODOS PARA CALCULAR LOS TIPOS        ##########
+###############################################################
+
+######## TIPOS PARA OPERADORES BINARIOS ##########
+def calcularTipoOpBin(expr,expr1,expr2,var):
+    global error
+    if isinstance(expr,lexer_parser.Suma):
+        if expr1.tipo==expr2.tipo:
+            expr.tipo= expr1.tipo
+        else:
+            if (expr1.tipo!="tipo_error") & (expr2.tipo!="tipo_error"):
+                print "Error de tipos en la variable '"+var+ "'.\n '+': esperaba tipos compatibles"
+                error=True
+            expr.tipo="tipo_error"
+    elif isinstance(expr,lexer_parser.Resta):
+        if (expr1.tipo=="int") & (expr2.tipo=="int"):
+            expr.tipo="int"
+        else:
+            if (expr1.tipo!="tipo_error") & (expr2.tipo!="tipo_error"):
+                print "Error de tipos en la variable '"+var+ "'.\n '-': esperaba tipos int"
+                error=True
+            expr.tipo="tipo_error"
+    elif isinstance(expr,lexer_parser.Producto):
+        if (expr1.tipo=="int") & (expr2.tipo=="int"):
+            expr.tipo="int"
+        else:
+            if (expr1.tipo!="tipo_error") & (expr2.tipo!="tipo_error"):
+                print "Error de tipos en la variable '"+var+ "'.\n '*': esperaba tipos int"
+                error=True
+            expr.tipo="tipo_error"
+   
+    elif isinstance(expr,lexer_parser.Division):
+        if (expr1.tipo=="int") & (expr2.tipo=="int"):
+            expr.tipo="int"
+        else:
+            if (expr1.tipo!="tipo_error") & (expr2.tipo!="tipo_error"):
+               print "Error de tipos en la variable '"+var+ "'.\n '/': esperaba tipos int"
+               error=True
+            expr.tipo="tipo_error"
+            
+    elif isinstance(expr,lexer_parser.Mod):
+        if (expr1.tipo=="int") & (expr2.tipo=="int"):
+            expr.tipo="int"
+        else:
+            if (expr1.tipo!="tipo_error") & (expr2.tipo!="tipo_error"):
+                 print "Error de tipos en la variable '"+var+ "'.\n '%': esperaba tipos int"
+                 error=True
+            expr.tipo="tipo_error"
+
+    elif isinstance(expr,lexer_parser.Potencia):
+        if (expr1.tipo=="int") & (expr2.tipo=="int"):
+            expr.tipo="int"
+        else:
+            if (expr1.tipo!="tipo_error") & (expr2.tipo!="tipo_error"):
+               print "Error de tipos en variable '"+var+"'.\n '**': esperaba tipos int"
+               error=True
+            expr.tipo="tipo_error"
+            
+    elif isinstance(expr,lexer_parser.OpBool):
+        tipoExp1= ''
+        tipoExp2= ''
+        if isinstance(expr1,str):
+            tipoExpr1= "bool" if ((expr1=="true") or (expr2=="false")) else "error"
+        else:
+            tipoExpr1=expr1.tipo
+
+        if isinstance(expr2,str):
+            tipoExpr2= "bool" if ((expr1=="true") or (expr2=="false")) else "error"
+        else:
+            tipoExpr2=expr2.tipo
+            
+        if (tipoExpr1=="bool") & (tipoExpr2=="bool"):
+            expr.tipo="bool"
+        else:
+            if (tipoExpr1!="tipo_error") & (tipoExpr2!="tipo_error"):
+                print "Error de tipos en la variable '"+var+"'.\n Operador booleano: esperaba tipos bool"
+                error=True
+            expr.tipo="tipo_error"
+            
+    elif isinstance(expr,lexer_parser.Comparacion):
+        
+        if (expr1.tipo=="int") & (expr2.tipo=="int"):
+            expr.tipo="bool"
+        else:
+            if (expr1.tipo!="tipo_error") & (expr2.tipo!="tipo_error"):
+                print "Error de tipos en variable '"+var+"'.\n Operador de comparacion: esperaba tipos int"
+                error=True
+            expr.tipo="tipo_error"
+        
+###### TIPO DE UNA LISTA #######    
+def calcularTipoLista(lista,var):
+    global error
+    if (len(lista.list)==0):
+        lista.tipo= "list of"
+    else:
+        type=lista.list[0].tipo
+        if (type!="int") & (type!="string"):
+            lista.tipo="tipo_error"
+            error=True
+            print "Error de tipos en la variable "+var+".\n Se esperaba una lista de ints o strings"
+
+        t= True
+        for elem in lista.list:
+            t= (type==elem.tipo) & t           
+            if (elem.tipo=="tipo_error"):
+                lista.tipo= "tipo_error"
+                return
+        if (t):
+            lista.tipo= "list of "+type
+        else:
+            lista.tipo="tipo_error"
+            print "Error de tipos en la variable "+var+".\nSe esperaba una lista homogenea de tipo '"+type+"'" 
+            error=True
+
+###### TIPOS PARA LOS OPERADORES UNARIOS ######          
+def calcularTipoUnOp(expresion,operando,var):
+    global error
+    if isinstance(expresion,lexer_parser.Neg):
+        if isinstance(operando,str):
+             expresion.tipo="bool" if(operando=="true")or(operando=="false") else "error"
+             if expresion.tipo=="error": print "Error!"
+        elif operando.tipo=="bool":
+            expresion.tipo="bool"
+        elif operando.tipo=="tipo_error":
+            expresion.tipo="tipo_error"
+        else:
+            error=True
+            expresion.tipo="tipo_error"
+            print "Error de tipos en la variable '"+var+"'\n'!': Esperaba expresion de tipo bool "
+    else:
+        if operando.tipo=="int":
+            expresion.tipo="int"
+        elif operando.tipo=="tipo_error":
+            expresion.tipo="tipo_error"
+        else:
+            error=True
+            expresion.tipo="tipo_error"
+            print "Error de tipos en la variable '"+var+"'\n'-': Esperaba expresion de tipo int "
+
+def calcularTipoCuant(cuant,op,var,listOTable,expr):
+    # Casos a considerar:
+    # 1. [% op var : list : expr%] tipo de la expr
+    # 2. [%    var : list : expr%] list of (tipo de la expr)
+    # 3. [% op var: table: expr %] tipo de la expr
+    # 4. [%    var: table: expr %] list of (tipo de la expr)
+    global error
+    global contexCuant
+    global varCuant
+    if (op==''):
+        # Caso 2 y 4: 'listas'
+        if (var.tipo=="opcional"):
+            cuant.tipo="list of"
+            return
+        if expr.tipo=="int":
+            cuant.tipo="list of int"
+        elif expr.tipo=="string":
+            cuant.tipo="list of string"
+        elif expr.tipo=="table":
+            hola=1
+        elif expr.tipo=="list of int":
+            print "Error en cuantificador"
+            error=True
+            cuant.tipo="tipo_error"
+            return
+        elif expr.tipo=="list of string":
+            print "Error en cuantificador"
+            error=True
+            cuant.tipo="tipo_error"
+            return
+    else:
+        # Caso 1 y 4 
+        if (var.tipo=="opcional"):
+            cuant.tipo="tipo_error"
+            print "Error en cuantificador"
+            error=True
+            return
+        if (expr.tipo=="int") or (expr.tipo=="string")or(expr.tipo=="bool"):
+            cuant.tipo= expr.tipo
+        else:
+            cuant.tipo="tipo_error"
+            error=True
+            print "Error en cuantificador"
+
+
+## TIPO PARA LA VARIABLE DEL CUANTIFICADOR #######
+def setTipoVar(expr):
+    global error
+    global varCuant
+    # El tipo de la variable del cuantificador depende del tipo de la lista 
+    if expr.list.tipo=="list of int":     
+        varCuant[expr.var.var]="int"
+    elif expr.list.tipo=="list of string":
+        varCuant[expr.var.var]="string"
+    elif expr.list.tipo=="list of":
+        varCuant[expr.var.var]="opcional"
+    elif expr.list.tipo=="table":
+        varCuant[expr.var.var]="table"
+    elif (expr.list.tipo=="int")or (expr.list.tipo=="string"):
+        print "Error de tipo en la variable'"+expr.var+"'se esperaba list o table en el cuerpo del cuantificador"
+        expr.tipo="tipo_error"
+        error=True
+        return False
+    elif expr.list.tipo=="tipo_error":
+        expr.tipo="tipo_error"
+        return False
+    else:
+        varCuant[expr.var]="tipo_error"
+        expr.tipo="tipo_error"
+        return False
+    return True
+
+######### TIPOS PARA LOS ACCESOS A LISTAS ############
+def calcularTipoAccList(expr,var):
+    global error
+    if (expr.var.tipo=="list of int") & (expr.index.tipo=="int"):
+        expr.tipo="int"
+    elif (expr.var.tipo=="list of string") & (expr.index.tipo=="int"):
+        expr.tipo="string"
+    elif (expr.index.tipo!="int") & (expr.index.tipo!="tipo_error"):
+        print "Error de tipo en la variable"+var+".\n En el acceso a la lista se esperaba un index de tipo 'int'"
+        expr.tipo="tipo_error"
+    elif (expr.var.tipo!="list of int")&(expr.var.tipo!="list of string") & (expr.var.tipo!="tipo_error"):
+        print "Error de tipo en la variable"+var+".\n Var '"+expr.var.var+"': Se esperaba que fuera de tipo 'list of ..'"
+    else:
+        expr.tipo="tipo_error"
+
+########## TIPOS PARA ACCESOS A TABLAS ##############
+def calcularTipoAccTab(expr,var):
+    global error
+    if isinstance(expx.index,int):
+        if (expr.var.tipo=="table")&(expr.col.tipo!="tipo_error"):
+             expr.tipo=expr.col.tipo
+        elif (expr.var.tipo!="table")&(expr.var.tipo!="tipo_error"):
+            print "Error de tipo en la variable '"+var+"'.\n Acceso a tabla mal definido"
+            error=True
+            expr.tipo="tipo_error"
+        else:
+            expr.tipo="tipo_error"
+    else:
+        if (expr.var.tipo=="table")&(expr.col.tipo!="tipo_error")&(expr.index.tipo!="tipo_error"):
+            expr.tipo=expr.col.tipo
+        elif (expr.var.tipo!="table")&(expr.var.tipo!="tipo_error"):
+            print "Error de tipo en la variable '"+var+"'.\n Acceso a tabla mal definido"
+            error=True
+            expr.tipo="tipo_error"
+        elif (expr.index.tipo!="int")&(expr.index.tipo!="tipo_error"):
+            print "Error de tipo en la variable '"+var+"'.\n Acceso a tabla mal definido"
+            error=True
+            expr.tipo="tipo_error"
+        else:
+            expr.tipo="tipo_error"
+
+########## TIPO PARA LA FUNCION RANGE #############  
+def calcularTipoRange(expr,var):
+    global error
+    if (expr.ini.tipo=="int") & (expr.fin.tipo=="int"):
+        expr.tipo="list of int"
+    elif (expr.ini.tipo!="int")&(expr.ini.tipo!="tipo_error"):
+        expr.tipo="tipo_error"
+        error=True
+        print "Error de tipo en la variable '"+var+"'.\n Range esperaba argumento de tipo 'int'"
+    elif (expr.fin.tipo!="int")&(expr.fin.tipo!="tipo_error"):
+        expr.tipo="tipo_error"
+        error=True
+        print "Error de tipo en la variable '"+var+"'.\n Range esperaba argumento de tipo 'int'"
+    else:
+        expr.tipo="tipo_error"
+
+######### TIPO PARA LA FUNCION LEN ###############
+def calcularTipoLen(expr,var):
+    global error
+    if (expr.var.tipo == "list of int") | (expr.var.tipo=="list of string")|(expr.var.tipo=="list of"):
+        expr.tipo="int"
+    elif (expr.var.tipo != "tipo_error"):
+        error=True
+        print "Error de tipo en la variable '"+var+"'.\n Argumento de Len debe ser de tipo 'list of ..' "
+        expr.tipo= "tipo_error"
+    else:
+        expr.tipo= "tipo_error"
+         
+   
+        
 # Funcion que recibe el nombre de una variable var y una expresion expr.
 # Va anadiendo arcos que van desde las variables que se encuentran dentro
 # de la expresion expr hasta la variable var en el grafo declarado como
-# variable global GD (Grafo de dependencias). 
+# variable global GD (Grafo de dependencias). Y calcula el tipo de las 
+# expresiones  
 def recorrer(var,expr):
-    
+    global nro
+    global varCuant
+    global contexCuant
+    global error
+
     if isinstance(expr,lexer_parser.BinOp):
         # op1 opBinnario op2
         recorrer(var,expr.op1)
         recorrer(var,expr.op2)
+        calcularTipoOpBin(expr,expr.op1,expr.op2,var)
     elif isinstance(expr,lexer_parser.UnOp):
         # opUnario(op)
         recorrer(var,expr.op)
+        calcularTipoUnOp(expr,expr.op,var)
     elif isinstance(expr,lexer_parser.IfExp):
-        # Expresion IF cond THEN expr1 ELSE expr2 
-        # Como sabemos de cual expresion depende? 
+        # Expresion IF cond THEN expr1 ELSE expr2  
         recorrer(var,expr.cond)
         recorrer(var,expr.exp1)
         recorrer(var,expr.exp2)
+        if isinstance(expr.cond,str):
+            if ((expr.cond=="true") | (expr.cond=="false")) &  (expr.exp1.tipo==expr.exp2.tipo):
+                expr.tipo=expr.exp1.tipo
+                return
+        if (expr.cond.tipo=="bool") & (expr.exp1.tipo==expr.exp2.tipo):
+            expr.tipo=expr.exp1.tipo
+        else:
+            expr.tipo="tipo_error"
     elif isinstance(expr,lexer_parser.AccList):
         # Acceso a lista: var[index]
-        # Como sabemos que si se cambia un elemento cualquiera 
-        # de la lista var por otro lado, afecta a esta expresion?
         recorrer(var,expr.index)
         recorrer(var,expr.var)
+        calcularTipoAccList(expr,var)
     elif isinstance(expr,lexer_parser.AccTab):
-        # Acceso a tabla: var[index].var
+        # Acceso a tabla: var[index].col
         recorrer(var,expr.index)
         recorrer(var,expr.var)
-        # Como hago con var[i].var, saber cuanto es i
-        # para poder agregarlo al grafo.? 
+        calcularTipoAccTab(expr,var)
     elif isinstance(expr,lexer_parser.Range):
         # Funcion range(ini,fin)
         recorrer(var,expr.ini)
         recorrer(var,expr.fin)
+        calcularTipoRange(expr,var)
     elif isinstance(expr,lexer_parser.Len):
         # Funcion Len(var)
         recorrer(var,expr.var)
+        calcularTipoLen(expr,var)
     elif isinstance(expr,lexer_parser.List):
         # Recorrer cada elemento de la lista
         for elem in (expr.list):
             recorrer(var,elem)
+        calcularTipoLista(expr,var)    
     elif isinstance(expr,lexer_parser.Cuant):
-        # Cuantificador: [% var: L : exp %]
-        recorrer(var,expr.exp)
-        recorrer(var,expr.list)     
-        GD.remove_node(var)
+        # Cuantificador: [% op var: L : exp %]
+        recorrer(var,expr.list)
+        contexCuant=True
+        ok= setTipoVar(expr)
+        if not(ok):
+            # El tipo de la variable 'var' tiene un tipo_error
+            return 
+        # Calcular el tipo de la expresion tomando en cuenta el tipo de var
+        if (expr.var.tipo!="opcional"):
+            recorrer(var,expr.exp)
+        calcularTipoCuant(expr,expr.op,expr.var,expr.list,expr.exp)
     elif isinstance(expr,lexer_parser.Var):
-        # Caso base: expr es una variable
-        if (contexTabla):
-            if (expr.var in diccTabla.keys()):
-                tabla= nombreTabla 
-                GD.add_edge(tabla +"." + expr.var,var)
+        # Caso base: expr es una variabl
+        if(contexTabla):
+            if(contexCuant)&(expr.var in varCuant):
+                expr.tipo= varCuant[expr.var] 
+            elif (expr.var in diccTabla):
+                tabla=nombreTabla
+                GD.add_edge(tabla+"_"+expr.var,var)
+                expr.tipo= diccTabla[expr.var][0]
             else:
+                if (expr.var in table):
+                    GD.add_edge(expr.var,var)
+                    expr.tipo= table[expr.var][0]
+                else:
+                    print "Error: variable '"+var+"' usada sin declarar"
+                    error=True
+        elif (contexCuant)&(expr.var in varCuant):
+            expr.tipo= varCuant[expr.var]
+        else:
+            if (expr.var in table):
                 GD.add_edge(expr.var,var)
+                expr.tipo= table[expr.var][0]
+            else:
+                print "Error: variable '"+var+"' usada sin declarar"
+                error=True
 
+    elif isinstance(expr,lexer_parser.Num):
+        expr.tipo= "int"
+    elif isinstance(expr,lexer_parser.String):
+        expr.tipo="string"
+
+###########################################################################
+###############                   MAIN                    #################
+###########################################################################
 lexer = lex.lex(module=lexer_parser)
 parser = yacc.yacc(module=lexer_parser,start='program',errorlog=yacc.NullLogger())
 
+# Tabla de simbolos global
+global table 
+table= {}
+# Numero de la siguiente expresion
+global nro
+nro=0
+# Variable que indica si se esta en el contexto de un cuantificador
+contexCuant=False
+# Si se esta dentro del contexto de un cuantificador 'varCuant' contiene
+# una lista de las variables dentro del cuantificador con sus tipos respectivos
+varCuant= {}
+# Existio algun error de tipo
+error= False
+
 data = sys.argv[1]
-
 file = open(data,"r")
-
-salida = "marcas_" + file.name
-
-file_e = open(salida,"w")
+salida = file.name[:-3] + "html"
+file_e = open(salida,"w+")
 
 # Reconocimiento de los bloques correspondientes a codigo shinyEL
 tables = []
 i = 1
+
+# Diccionario de tags shiny cuyo valor seran el codigo html a sustituir
+tag_html = {}
+
+tag_script = '<script type="text/javascript" src="' + salida[:-4] + 'js"></script>'
+
+codigo_js = {}
+
 while True:
     b = ''
     bl = False
@@ -99,61 +450,182 @@ while True:
         break    
     if s1 == '{':
         s1 = file.read(1)
-        # Escritura de la marca shiny en nuevo archivo html
-        file_e.write("marca_shiny_"+str(i)) 
-        while True:
-            s1 = file.read(1)
-            if s1 == '%':
-                s2 = file.read(1)
-                if  s2 == '}':
-                    bl = True
-                    i += 1
-                    break
+        if s1 == '%':
+            marca_shiny = '&(marcha_shiny_'+str(i)+')'
+            file_e.write(marca_shiny) # Escritura de la marca shiny en nuevo archivo html
+            while True:
+                s1 = file.read(1)
+                if s1 == '%':
+                    s2 = file.read(1)
+                    if  s2 == '}':
+                        bl = True
+                        i += 1
+                        break
+                    else:
+                        b = b + s1 + s2
                 else:
-                    b = b + s1 + s2
-            else:
-                b = b + s1
+                    b = b + s1
+        else:
+            print "Falta un caracter % en la expresion "  + str(i) + ". Se espera '{%'"
+            file_e.close()
+            os.remove(salida)
+            exit(1)
     else:
         file_e.write(s1)
         # Analisis del bloque de codigo
     if bl and b != '':
-        print "\n" + b
         lexer.input(b)
-        # if error continue
         #for tok in lexer: print tok
         result = parser.parse(b)
-        # Se anida la tabla de simbolo del bloque a una lista
-        tables.append(result[1]) 
-        print result[0]
+        exp = result[0]
+        if result[2]: error=True
+        if isinstance(exp,lexer_parser.SalidaExpresion):
+            if not(exp.exp == 'input'):
+                nro = nro + 1
+                id = '_e'+str(nro) 
+                table[id] = ('',exp.exp,True)                
+                tag_html[marca_shiny] = lexer_parser.html_input(id)
+                codigo_js[id] = exp.exp.eval()
+            else:
+                tag_html[marca_shiny] = ''
+        else:
+            tag_html[marca_shiny] = exp.html()
+            for d in exp.exp:
+                 codigo_js[d.var.var] =  d.eval()
+        # Se aniade la tabla de simbolo del bloque a una lista
+        tables.append(result[1])
+file.close()
 
+#######################################################
+# Sustitucion de las expresiones shiny a codigo HTML  #
+#######################################################
+
+file_e.seek(0)
+intermedio = file_e.read()
+for tag in tag_html:
+    tmp = ''    
+    if isinstance(tag_html[tag],list):
+        for t in tag_html[tag]:
+            tmp = tmp + t + "\n\t"
+        intermedio = intermedio.replace(tag,tmp)
+    else:
+        intermedio = intermedio.replace(tag,tag_html[tag])
+
+# Reconocimiento del tag de html 'head' para aniadir el tag 'script'
+pos_head = intermedio.find('<head>')
+before_head = intermedio[:pos_head+6]
+after_head = intermedio[pos_head+7:]
+
+intermedio = before_head + '\n\t' + tag_script + '\n' + after_head
+
+
+# Escritura en el archivo .html
+file_e.seek(0)
+file_e.write(intermedio)
 file_e.close()
-		
-# Crear grafo de dependencias
+
+#########################################
+# Union de las tablas a la tabla global #
+#########################################
+
+for tab in tables:
+    for var in tab.keys():
+        if var in table:
+            print "Error: Variable '"+ var + "' declarada mas de una vez"
+            os.remove(salida)
+            error= True
+        table[var]= tab[var]
+if(error): exit(1)           
+
+#######################################
+###  Crear grafo de dependencias   ####
+#######################################
+
 global GD
+GD = nx.DiGraph()
 
 # Variable booleana que identifica si se esta dentro del
 # contexto de una tabla
 global contexTabla
 contexTabla= False
+
 # Si la variable contexTabla es True diccTabla contiene el
 # diccionario de variables contenidas dentro de la tabla y
 # nombreTabla contiene el nombre de la misma
 global diccTabla
 global nombreTabla
 
-GD= nx.DiGraph()
+for var in table.copy():
+    # Si el tipo de la variable es 'table'
+    if table[var][0]=="table":
+        contexTabla=True
+        diccTabla= table[var][1][1]
+        nombreTabla= var
+        for varT in table[var][1][1].keys():	
+            recorrer(var+"_"+ varT,table[var][1][1][varT][1])
+        contexTabla=False
+    else:
+        recorrer(var,table[var][1])
 
-for table in tables:
-    for var in table.keys():
-        # Si el tipo de la variable es 'table'
-        if table[var][0]=="table":
-            contexTabla=True
-            diccTabla= table[var][1]
-            nombreTabla= var
-            for varT in table[var][1].keys():
-                recorrer(var+ "." + varT,table[var][1][varT][1])
+if error:exit(1)
+##########################################################
+###  Verificacion de referencias ciclicas en el grafo  ###
+##########################################################
+
+if len(ciclos.simple_cycles(GD)) > 0:
+    print "Error: existen referencias cíclicas."
+    os.remove(salida)
+    exit(1)
+
+#########################################
+###  Generacion de codigo JavaScript  ###
+#########################################
+
+body_js = ''
+js = "var variables = new Array();\n"
+for v in codigo_js:
+    js = js + 'variables["' + v + '"]'
+    if table[v][0] == 'table' or 'list of' in table[v][0]:
+        var = 'variables["' + v + '"]'
+        js += ' = new Array();'
+        if table[v][0] == 'table':
+            cols = '{'
+            for c in table[v][1][1]:
+                zero = '0' if table[v][1][1][c][0] == 'int' else '""'
+                cols = cols + '"' +  c + '":' + zero + ', '
+            cols = cols[:-2] + '};'            
+            for i in range(0,table[v][1][0]):
+                js = js + '\n' + var + '[' + str(i) + '] = ' + cols
         else:
-            recorrer(var,table[var][1])
+            zero = '0' if table[v][0] == 'list of int' else '""'
+            for i in range(0,len(table[v][1].list)):
+                js = js + '\n' + var + '[' + str(i) + '] = ' + zero
+    else:
+        if not(table[v][0] == ''):
+            zero = '0;\n' if table[v][0] == 'int' else '"";\n'
+        else:
+            zero = '0;\n' if table[v][1].tipo == 'int' else '"";\n'
+        js = js + ' = ' + zero 
+            
+    tmp = 'function eval_' + v + '() {\n'
+    if v[0] == '_':
+        tmp = tmp + '\tvariables["' + v + '"] = ' + codigo_js[v] + ';'
+    else:
+        tmp = tmp + '\t' + codigo_js[v]
 
-nx.draw(GD)
-plt.show()
+    if table[v][2]:
+        tmp = tmp + '\n\tdocument.getElementById("sel_' + v + '").innerHTML = variables["' + v + '"];'
+
+    if v in GD:
+        for s in GD.successors(v):
+            tmp = tmp + '\n\teval_' + s + '();'
+
+    tmp = tmp + '\n}\n\n'
+
+    body_js += tmp
+
+
+# Se crea y copia el contenido del codigo generado a un archivo .js
+file_js = open(salida[:-4] + 'js',"w+")
+file_js.write(js + '\n\n' + body_js)
+file_js.close()

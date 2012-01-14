@@ -105,10 +105,24 @@ precedence = (
 #########   CLASES PARA REPRESENTACION DEL ARBOL SINTACTICO ###############
 ###########################################################################
 
-class Salida:
-    def __init__(self,exp):
-        self.exp = exp
+def html_input_js(id,eval):
+    return '<input type = "text" id = "sel_' + id + '" onchange="eval_' + eval + '();" ' + 'value="0"/>'
 
+def html_input(id):
+    return '<input type = "text" id = "sel_' + id + '" value="0"/>'
+
+def html_span(id):
+    return '<span id = "sel_' + id + '"></span>'
+
+class SalidaNoSalida:
+    def __init__(self,exp):
+        if isinstance(exp,list):
+            exp.reverse()
+            self.exp = exp
+        else:
+            self.exp = exp
+
+class Salida(SalidaNoSalida):
     def __str__(self):
         aux = '['
         for exp in self.exp:
@@ -116,18 +130,14 @@ class Salida:
         aux = aux[:-1] + ']'
 
         return "Salida(" + aux + ")"
-		
-class SalidaExpresion:
-    def __init__(self,exp):
-        self.exp = exp
 
-    def __str__(self):
-        return "Salida(" + str(self.exp) + ")"
-		
-class NoSalida:
-    def __init__(self,exp):
-        self.exp = exp
+    def html(self):
+        aux = []
+        for exp in self.exp:
+            aux.append(exp.html())
+        return aux
 
+class NoSalida(SalidaNoSalida):
     def __str__(self):
         aux = '['
         for exp in self.exp:
@@ -136,19 +146,86 @@ class NoSalida:
 
         return "NoSalida(" + aux + ")"
 
+    def html(self):
+        return ''
+
+class SalidaExpresion(SalidaNoSalida):
+    def __str__(self):
+        return "SalidaExpresion(" + str(self.exp) + ")"
+
+    def html(self):
+        return ''
+
 class Dec:
-    def __init__(self,vars,typs,exps):
-        self.vars = vars
-        self.typs = typs
-        self.exps = exps
+    def __init__(self,var,type,exp):
+        self.var = var
+        self.type = type
+        self.exp = exp
 
     def __str__(self):
-        return "Dec(" + str(self.vars) + "," + str(self.typs) + "," + str(self.exps) + ")"
-		
-class Expresion: pass
+        return "Dec(" + str(self.var) + "," + str(self.type) + "," + str(self.exp) + ")"
+
+    def eval(self):
+        if "list of" in self.type:
+            if isinstance(self.exp,List):
+                tmp = ''
+                for i,e in enumerate(self.exp.list):
+                    tmp = tmp + 'variables["' + self.var.var + '"]["' + str(i) + '"] = '+  e.eval() + ';\n\t'
+                return tmp[:-2]
+            elif isinstance(self.exp,Cuant):
+                return "codigo js de un cuantificador"
+        elif self.type == "table":
+            return "codigo js de una tabla"
+        else:
+            if self.exp != "input":
+                if not(isinstance(self.exp,Cuant)):
+                    return 'variable["' + self.var.var + '"] = ' + self.exp.eval() + ";"
+            else:
+                tmp = 'document.getElementById("sel_' + self.var.var + '").value'
+                if self.type == 'int':
+                    return self.var.eval() + ' = parseInt(' + tmp + ');'
+                elif self.type == 'string':
+                    return self.var.eval() + ' = ' + tmp + ';'
+
+    def html(self):
+        tmp = ''
+        if self.type == 'table':
+            tmp = tmp + '<table>\n'
+            for i in range(0,self.exp.tam):
+                tmp = tmp + '    <tr>'
+                for c in self.exp.col:
+                    tmp = tmp + '\n        <td>'
+                    id = self.var.var + '_' + str(i) + '_' + c.var.var
+                    if c.exp == 'input':
+                        tmp = tmp + html_input_js(id,self.var.var + '_' + c.var.var)
+                    else:
+                        tmp = tmp + html_span(id)
+                    tmp = tmp + '</td>'
+                tmp = tmp + '\n    </tr>\n'
+            tmp = tmp + '</table>\n'
+        elif 'list of' in self.type:
+            ## if self.type == 'list of':
+            ##     return "Lista Vacia"
+            if isinstance(self.exp,List):
+                l = len(self.exp.list)
+                for i in range(0,l):
+                    tmp = tmp + html_span(self.var.var + '_' + str(i)) + ','
+                    tmp = tmp[:-1]
+
+        else:
+            if self.exp == 'input':
+                tmp = html_input_js(self.var.var,self.var.var)
+            else:
+                tmp = html_span(self.var.var)
+        return tmp
+
+class Expresion:
+    def __init__(self,tipo=None):
+        self.tipo= tipo
 
 class BinOp(Expresion):
     def __init__(self,op1,op2):
+        Expresion.__init__(self)
         self.op1 = op1
         self.op2 = op2
 
@@ -156,97 +233,161 @@ class Suma(BinOp):
     def __str__(self):
         return "Suma(" + str(self.op1) + "," + str(self.op2) + ")"
 
+    def eval(self):
+        return "(" + self.op1.eval() + " + " + self.op2.eval() + ")"
+
 class Resta(BinOp):
     def __str__(self):
         return "Resta(" + str(self.op1) + "," + str(self.op2) + ")"
+
+    def eval(self):
+        return "(" + self.op1.eval() + " - " + self.op2.eval() + ")"		
 
 class Producto(BinOp):
     def __str__(self):
         return "Producto(" + str(self.op1) + "," + str(self.op2) + ")"
 
+    def eval(self):
+        return "(" + self.op1.eval() + " * " + self.op2.eval() + ")"		
+
 class Division(BinOp):
     def __str__(self):
         return "Division(" + str(self.op1) + "," + str(self.op2) + ")"
+
+    def eval(self):
+        return "(" + self.op1.eval() + " / " + self.op2.eval() + ")"		
 
 class Mod(BinOp):
     def __str__(self):
         return "Mod(" + str(self.op1) + "," + str(self.op2) + ")"
 
+    def eval(self):
+        return "(" + self.op1.eval() + " % " + self.op2.eval() + ")"
+
 class Potencia(BinOp):
     def __str__(self):
         return "Potencia(" + str(self.op1) + "," + str(self.op2) + ")"
+
+    def eval(self):
+        return "Math.pow(" + self.op1.eval() + "," + self.op2.eval() + ")"
 
 class Fby(BinOp):
     def __str__(self):
         return "Fby(" + str(self.op1) + "," + str(self.op2) + ")"
 
-class And(BinOp):
+class TbyOp(BinOp):
+    def __str__(self):
+        return  "TbyOp(" + str(self.op1) + "," + str(self.op2) + ")"
+
+class OpBool(BinOp):
+    pass
+
+class And(OpBool):
     def __str__(self):
         return "And(" + str(self.op1) + "," + str(self.op2) + ")"
 
-class Or(BinOp):
+    def eval(self):
+        return "(" + self.op1.eval() + " && " + self.op2.eval() + ")"
+
+class Or(OpBool):
     def __str__(self):
         return "Or(" + str(self.op1) + "," + str(self.op2) + ")"
 
-class MayorQue(BinOp):
+    def eval(self):
+        return "(" + self.op1.eval() + " || " + self.op2.eval() + ")"
+
+class Comparacion(BinOp):
+    pass
+
+class MayorQue(Comparacion):
     def __str__(self):
         return "MayorQue(" + str(self.op1) + "," + str(self.op2) + ")"
 
-class MenorQue(BinOp):
+    def eval(self):
+        return "(" + self.op1.eval() + " > " + self.op2.eval() + ")"
+
+class MenorQue(Comparacion):
     def __str__(self):
         return "MenorQue(" + str(self.op1) + "," + str(self.op2) + ")"
 
-class MayorIgualQue(BinOp):
+    def eval(self):
+        return "(" + self.op1.eval() + " < " + self.op2.eval() + ")"		
+
+class MayorIgualQue(Comparacion):
     def __str__(self):
         return "MayorIgualQue(" + str(self.op1) + "," + str(self.op2) + ")"
 
-class MenorIgualQue(BinOp):
+    def eval(self):
+        return "(" + self.op1.eval() + " >= " + self.op2.eval() + ")"		
+
+class MenorIgualQue(Comparacion):
     def __str__(self):
         return "MenorIgualQue(" + str(self.op1) + "," + str(self.op2) + ")"
 
-class Igual(BinOp):
+    def eval(self):
+        return "(" + self.op1.eval() + " <= " + self.op2.eval() + ")"		
+
+class Igual(Comparacion):
     def __str__(self):
         return "Igual(" + str(self.op1) + "," + str(self.op2) + ")"
-    
-class Distinto(BinOp):
+
+    def eval(self):
+        return "(" + self.op1.eval() + " == " + self.op2.eval() + ")"
+
+class Distinto(Comparacion):
     def __str__(self):
         return "Distinto(" + str(self.op1) + "," + str(self.op2) + ")"    
 
+    def eval(self):
+        return "(" + self.op1.eval() + " != " + self.op2.eval() + ")"		
+
 class UnOp(Expresion):
     def __init__(self,op):
+        Expresion.__init__(self)
         self.op = op
 
 class Neg(UnOp):
     def __str__(self):
         return "Neg(" + str(self.op) +")"
 
+    def eval(self):
+        return "!(" + self.op.eval() + ")"
+
 class Min(UnOp):
     def __str__(self):
         return "Min(" + str(self.op) +")"    
 
-class TbyOp(BinOp):
-    def __str__(self):
-        return  "TbyOp(" + str(self.op1) + "," + str(self.op2) + ")"
+    def eval(self):
+        return "-(" + self.op.eval() + ")"		
 
 class IfExp(Expresion):
     def __init__(self,cond,exp1,exp2):
+        Expresion.__init__(self)
         self.cond = cond
         self.exp1 = exp1
         self.exp2 = exp2
-        
+
     def __str__(self):
         return  "IfExp(" + str(self.cond) + "," + str(self.exp1) + "," + str(self.exp2) + ")"
 
+    def eval(self):
+        return "(" + self.cond.eval() + "?" + self.exp1.eval() + ":" + self.exp2.eval() + ")"
+
 class AccList(Expresion):
     def __init__(self,var,index):
+        Expresion.__init__(self)
         self.var = var
         self.index = index
 
     def __str__(self):
         return "AccList(" + str(self.var) + "," + str(self.index) + ")"
 
+    def eval(self):	
+        return 'variables["' + self.var.var + "][" + self.index.eval() + "]"
+
 class AccTab(Expresion):
     def __init__(self,var,col,index):
+        Expresion.__init__(self)
         self.var = var
         self.col = col
         self.index = index
@@ -254,8 +395,12 @@ class AccTab(Expresion):
     def __str__(self):
         return "AccTab(" + str(self.var) + "," + self.col + "," + str(self.index) + ")"
 
+    def eval(self):
+        return 'variables["' + self.var.var + '"][' + self.index.eval() + "]." + self.col
+
 class Tabla(Expresion):
     def __init__(self,tam,col):
+        Expresion.__init__(self)
         self.tam = tam
         self.col = col
 
@@ -264,35 +409,58 @@ class Tabla(Expresion):
         for c in self.col:
             aux = aux + '(' + str(c.var) + ',' + str(c.type) + ',' + str(c.exp) + ')' + ','
         aux = aux[:-1] + ']'
-        
+
         return "Tabla(" + str(self.tam) + "," + aux + ")"
 
+    def eval(self):
+        return ''
+
 class ColTabla:
-    def __init__(self,var,type,exp):
+    def __init__(self,var,type,exp,tipo=None):
         self.var = var
+        # tipo por definicion
         self.type = type
+        # tipo inferido de la expresion 
+        self.tipo = tipo
         self.exp = exp
 
     def __str__(self):
-        return "ColTabla(" +str( self.var) + "," + self.type + "," + str(self.exp) + ")"
+        return "ColTabla(" + str(self.var) + "," + self.type + "," + str(self.exp) + ")"
+
+    def eval(self):
+        return self.var.eval()
 
 class Range(Expresion):
     def __init__(self,ini,fin):
+        Expresion.__init__(self)
         self.ini = ini
         self.fin = fin
 
     def __str__(self):
         return "Range(" + str(self.ini) + "," + str(self.fin) + ")"
 
+    def eval(self):
+        aux = '[]'
+
+        if self.ini.num < self.fin.num:
+            return str(range(self.ini.num, self.fin.num + 1))
+
+        return aux
+
 class Len(Expresion):
     def __init__(self,var):
+        Expresion.__init__(self)
         self.var = var
 
     def __str__(self):
         return "Len(" + str(self.var) + ")"
 
+    def eval(self):
+        return "length." + self.var.eval()
+
 class Cuant(Expresion):
     def __init__(self,op,var,list,exp):
+        Expresion.__init__(self)
         self.op = op
         self.var = var
         self.list = list
@@ -303,6 +471,7 @@ class Cuant(Expresion):
 
 class List(Expresion):
     def __init__(self,list):
+        Expresion.__init__(self)
         self.list =  list
 
     def __str__(self):
@@ -311,35 +480,54 @@ class List(Expresion):
             aux = aux + str(exp) + ','
         aux = aux[:-1] + ']'
 
-        return "List(" + aux + ")"        
+        return "List(" + aux + ")" 
 
 class Num(Expresion):
     def __init__(self,num):
-        self.num= num
-    
+        Expresion.__init__(self)
+        self.num = num
+
     def __str__(self):
         return "Num("+ str(self.num) +")"
 
-class Var(Expresion):
-    def __init__(self,var):
-        self.var=var
+    def eval(self):
+        return str(self.num)
+
+class String(Expresion):
+    def __init__(self,string):
+        Expresion.__init__(self)
+        self.string = string
 
     def __str__(self):
-        return "Var("+self.var+ ")"
+        return "String("+ self.string +")"
 
-#class Input(Expresion):
-            
-        
+    def eval(self):
+        return self.string
+
+
+class Var(Expresion):
+    def __init__(self,var):
+        Expresion.__init__(self)
+        self.var = var
+
+    def __str__(self):
+        return "Var("+ self.var + ")"
+
+    def eval(self):
+        return 'variables["' + self.var + '"]'
+
 ############################################################################
 #########            PRODUCCIONES DE LA GRAMATICA                 ##########
 ############################################################################
 
 def p_program_dec(p):
     '''program : EQ declaraciones
-               | declaraciones'''
-    
-    nombres={} # Diccionario para la tabla de simbolos 
-    
+        | declaraciones'''
+
+    # Tabla de simbolos para el tag de shiny 
+    nombres={}
+    error=False
+
     if len(p) == 3:
         p[2][2].reverse()
         aux = []
@@ -349,11 +537,17 @@ def p_program_dec(p):
                 col = p[2][2][i].col
                 simb_tabletype = {}
                 for c in col:
+                    if c.var.var in simb_tabletype:
+                        print "Error: variable "+c.var.var+"' declarada mas de una vez en la tabla '"+var.var+"'"
+                        error=True
                     simb_tabletype[c.var.var] = (c.type,c.exp)
-                nombres[var.var] = (p[2][1][i],simb_tabletype)    
+                nombres[var.var] = (p[2][1][i],(p[2][2][i].tam,simb_tabletype),True)    
             else:
-                nombres[var.var] = (p[2][1][i],p[2][2][i])
-        p[0] = (Salida(aux),nombres)
+                if var.var in nombres:
+                    print "Error: variable '"+var.var+"' declarada mas de una vez"
+                    error=True
+                nombres[var.var] = (p[2][1][i],p[2][2][i],True)
+        p[0] = (Salida(aux),nombres,error)
     else:
         p[1][2].reverse()
         aux = []
@@ -363,24 +557,32 @@ def p_program_dec(p):
                 col = p[1][2][i].col
                 simb_tabletype = {}
                 for c in col:
+                    if c.var.var in simb_tabletype:
+                        print "Error: variable '"+c.var.var+"' declarada mas de una vez en la tabla '"+ var.var+"'"
+                        error=True
                     simb_tabletype[c.var.var] = (c.type,c.exp)
-                nombres[var.var] = (p[1][1][i],simb_tabletype)    
+                nombres[var.var] = (p[1][1][i],(p[1][2][i].tam,simb_tabletype),False)    
             else:
-                nombres[var.var] = (p[1][1][i],p[1][2][i])	
-        p[0] = (NoSalida(aux),nombres)
-       
+                if var.var in nombres:
+                    print "Error: variable '"+var.var+"' declarada mas de una vez"
+                    error=True
+                nombres[var.var] = (p[1][1][i],p[1][2][i],False)	
+        p[0] = (NoSalida(aux),nombres,error)
+
 def p_program_exp(p):
     'program : EQ expresion'
-    p[0] = (SalidaExpresion(p[2]),{})
-    
+    error=False
+    if len(p) == 3:
+        p[0] = (SalidaExpresion(p[2]),{},error)
+
 def p_empty(p):
     'empty :'
     p[0] = ''
     pass
-        
+
 def p_declaraciones(p):
     '''declaraciones : VAR COLON type COMMA declaraciones COMMA expresion
-                     | VAR COLON type ASIG expresion ''' 
+        | VAR COLON type ASIG expresion ''' 
     if len(p) == 6:
         p[0] = ([Var(p[1])],[p[3]],[p[5]])
     else:
@@ -391,8 +593,8 @@ def p_declaraciones(p):
 
 def p_type(p):
     ''' type : typ
-             | LIST OF typ 
-             | TABLE '''
+        | LIST OF typ 
+        | TABLE '''
     if len(p) == 4:
         p[0] = p[1] + ' ' + p[2] + ' ' + p[3]
     else:
@@ -400,15 +602,15 @@ def p_type(p):
 
 def p_expresion(p):
     ''' expresion : operando
-                  | tabla
-                  | INPUT'''
+        | tabla
+        | INPUT'''
     p[0] = p[1]
 
 def p_operando(p):
     ''' operando : operando operador aux
-                 | operando FBY aux
-                 | opTby
-                 | aux '''
+        | operando FBY aux
+        | opTby
+        | aux '''
     if len(p) == 4:
         if p[2] == '+':
             p[0] = Suma(p[1],p[3])
@@ -433,17 +635,17 @@ def p_aux_1(p):
 
 def p_aux_2(p):
     ''' aux : NUM
-            | m LPAREN operando RPAREN
-            | MINUS aux %prec UMINUS
-            | STRING
-            | list
-            | select 
-            | cuant
-            | VAR LBRACK operando RBRACK
-            | VAR LBRACK operando RBRACK DOT VAR
-            | VAR DOT VAR 
-            | LEN LPAREN operando RPAREN 
-            | RANGE LPAREN operando COMMA operando RPAREN '''
+        | m LPAREN operando RPAREN
+        | MINUS aux %prec UMINUS
+        | STRING
+        | list
+        | select 
+        | cuant
+        | VAR LBRACK operando RBRACK
+        | VAR LBRACK operando RBRACK DOT VAR
+        | VAR DOT VAR 
+        | LEN LPAREN operando RPAREN 
+        | RANGE LPAREN operando COMMA operando RPAREN '''
     if len(p) == 7:
         if p[2] == '(':
             p[0] = Range(p[3],p[5])
@@ -466,45 +668,47 @@ def p_aux_2(p):
         p[0] = Min(p[2])
     elif isinstance(p[1],int):
         p[0]= Num(p[1])
+    elif isinstance(p[1],str):
+        p[0]= String(p[1])
     else:
         p[0] = p[1]
 
 def p_m(p):
     ''' m : MINUS %prec UMINUS
-          | NOT %prec UNOT
-          | empty'''
+        | NOT %prec UNOT
+        | empty'''
     p[0] = p[1]
-    
+
 def p_cuant(p):
     'cuant : LLIST cuan VAR COLON operando COLON operando RLIST'
     p[0] = Cuant(p[2],Var(p[3]),p[5],p[7])
-    
+
 def p_list(p):
     '''list : LLIST VAR COLON operando COLON operando RLIST
-            | LBRACK expList RBRACK'''
+        | LBRACK expList RBRACK'''
     if len(p) == 4:
         p[0] = p[2]
     else:
         p[0] = Cuant('',Var(p[2]),p[4],p[6])
-    
+
 def p_cuan(p):
     '''cuan : operador
-            | opBool'''
+        | opBool'''
     p[0] = p[1]
 
 def p_operador(p):
     '''operador : PLUS
-                | MINUS
-                | TIMES
-                | MOD
-                | POW
-                | DIV'''
+        | MINUS
+        | TIMES
+        | MOD
+        | POW
+        | DIV'''
     p[0] = p[1]
 
 def p_expList(p):
     '''expList : expList COMMA operando
-               | operando
-               | empty'''
+        | operando
+        | empty'''
     if len(p) == 2:
         if p[1] == '':
             p[0] = []
@@ -520,7 +724,7 @@ def p_opTby(p):
 
 def p_listVars(p):
     '''listVars : listVars COMMA VAR
-                | VAR'''
+        | VAR'''
     if len(p) == 4:
         p[1].list.append(Var(p[3]))
         p[0] = p[1]
@@ -533,17 +737,17 @@ def p_select(p):
 
 def p_comp(p):
     '''comp : GT
-            | LT
-            | LTE
-            | GTE
-            | EQ
-            | NOTEQ '''
+        | LT
+        | LTE
+        | GTE
+        | EQ
+        | NOTEQ '''
     p[0] = p[1]
 
 def p_expBool(p):
     '''expBool : expBool opBool condExp
-               | condExp
-               | m LPAREN expBool RPAREN '''
+        | condExp
+        | m LPAREN expBool RPAREN '''
     if len(p) == 5:
         if p[1] == '!':
             p[0] = Neg(p[3])
@@ -559,15 +763,15 @@ def p_expBool(p):
 
 def p_opBool(p):
     ''' opBool : AND
-               | OR '''
+        | OR '''
     p[0] = p[1]
 
 def p_condExp(p):
     '''condExp : operando comp operando
-               | m LPAREN condExp RPAREN
-               | m cuant
-               | m TRUE
-               | m FALSE '''
+        | m LPAREN condExp RPAREN
+        | m cuant
+        | m TRUE
+        | m FALSE '''
     if len(p) == 5:
         if p[1] == '!':
             p[0] = Neg(p[3])
@@ -593,12 +797,12 @@ def p_condExp(p):
             p[0] = p[2]
 
 def p_tabla(p):
-    'tabla : NEW TABLE LBRACK operando RBRACK WHERE col'
+    'tabla : NEW TABLE LBRACK NUM RBRACK WHERE col'
     p[0] = Tabla(p[4],p[7])
 
 def p_col(p):
     ''' col : VAR COLON typ ASIG expresion
-            | col SEMICOLON VAR COLON typ ASIG expresion'''
+        | col SEMICOLON VAR COLON typ ASIG expresion'''
     if len(p) == 8:
         p[1].append(ColTabla(Var(p[3]),p[5],p[7]))
         p[0] = p[1]
@@ -607,8 +811,8 @@ def p_col(p):
 
 def p_typ(p):
     '''typ : INT
-           | TSTRING'''
+        | TSTRING'''
     p[0] = p[1]
 
 def p_error(p):
-    print "Syntax error in input! %r" % p.value
+    print "Error de sintaxis: %r" % p.value
